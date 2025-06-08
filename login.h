@@ -1,11 +1,15 @@
 #ifndef LOGIN_H
 #define LOGIN_H
 
-#define AUTH_SUCCESS           0  /* credenciais corretas */
-#define AUTH_NO_SUCH_LOGIN     1  /* login não existe */
-#define AUTH_WRONG_PASSWORD    2  /* senha incorreta */
-#define AUTH_INVALID_FIELDS    3  /* campos inválidos */
+// códigos de retorno
+#define AUTH_SUCCESS       0
+#define AUTH_NO_USER       1
+#define AUTH_BAD_PASSWORD  2
+#define AUTH_INVALID_FIELD 3
 
-int autentica(int login, int senha);
+// autentica: compara login/senha em users.csv
+// - login e senha não podem ser NULL ou string vazia
+// - retorna um dos códigos acima
+int autentica(const char *login, const char *senha);
 
-#endif /* LOGIN_H */
+#endif // LOGIN_H
