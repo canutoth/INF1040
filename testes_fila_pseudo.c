@@ -99,8 +99,8 @@ int main(void) {
     adicionarNaFila(&fila, "U2", 1);
     prevSize = fila.tamanho;
     ret = removerDaFila(&fila, "U9");
-    if (ret == -1 && fila.tamanho == prevSize) PASS("remocao usuario inexistente");
-    else FAIL("remocao usuario inexistente");
+    if (ret == -1 && fila.tamanho == prevSize) PASS("Remocao usuario inexistente");
+    else FAIL("Remocao usuario inexistente");
 
     // 13. Remocao da cabeca da fila
     inicializarFila(&fila);
@@ -110,9 +110,9 @@ int main(void) {
     prevSize = fila.tamanho;
     removerDaFila(&fila, "U1");
     if (strcmp(fila.inicio->id, "U2") == 0 && fila.tamanho == prevSize - 1) {
-        PASS("remocao cabeca da fila");
+        PASS("Remocao cabeca da fila");
     } else {
-        FAIL("remocao cabeca da fila");
+        FAIL("Remocao cabeca da fila");
     }
 
     // 14. Remocao da cauda da fila
@@ -123,9 +123,9 @@ int main(void) {
     prevSize = fila.tamanho;
     removerDaFila(&fila, "U3");
     if (strcmp(fila.fim->id, "U2") == 0 && fila.tamanho == prevSize - 1) {
-        PASS("remocao cauda da fila");
+        PASS("Remocao cauda da fila");
     } else {
-        FAIL("remocao cauda da fila");
+        FAIL("Remocao cauda da fila");
     }
 
     // 15. Remocao de no intermediario da fila
@@ -137,9 +137,9 @@ int main(void) {
     removerDaFila(&fila, "U2");
     if (fila.inicio->next && strcmp(fila.inicio->next->id, "U3") == 0
         && fila.tamanho == prevSize - 1) {
-        PASS("remocao no intermediario");
+        PASS("Remocao no intermediario");
     } else {
-        FAIL("remocao no intermediario");
+        FAIL("Remocao no intermediario");
     }
 
     return 0;
