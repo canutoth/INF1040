@@ -7,6 +7,7 @@
 static bool validaLogin(const char* login);
 static bool loginExiste(const char* login, Usuario* usuarios, int totalUsuarios);
 static bool cpfConvidadoValido(const char* cpf, Usuario* convidados, int totalConvidados);
+static Usuario* criaListaUsuarios();
 
 /***************************************************************************************************************
 Nome: criaInterno(mtr, senha)

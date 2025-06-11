@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "usuario.h"
 
 // helper: campo válido = não-NULL e não-vazio
 static int campo_valido(const char *s) {
