@@ -5,8 +5,8 @@
 #include <ctype.h>
 
 static bool validaLogin(const char* login);
-static bool loginExiste(const char* login);
-static bool cpfConvidadoValido(const char* cpf);
+static bool loginExiste(const char* login, Usuario* usuarios, int totalUsuarios);
+static bool cpfConvidadoValido(const char* cpf, Usuario* convidados, int totalConvidados);
 
 /***************************************************************************************************************
 Nome: criaInterno(mtr, senha)
@@ -280,34 +280,22 @@ static bool validaLogin(const char* login) {
     return true;
 }
 
-// Verifica se já existe um login igual em users.csv
-static bool loginExiste(const char* login) {
-    FILE* f = fopen("users.csv", "r");
-    if (!f) return false;
-    char linha[256];
-    while (fgets(linha, sizeof linha, f)) {
-        char* tok = strtok(linha, ",");
-        if (tok && strcmp(tok, login) == 0) {
-            fclose(f);
-            return true;
+// Verifica se já existe um login igual em usuarios
+static bool loginExiste(const char* login, Usuario* usuarios, int totalUsuarios) {
+    for (int i = 0; i < totalUsuarios; i++) {
+        if (strcmp(usuarios[i].login, login) == 0) {
+            return false;
         }
     }
-    fclose(f);
-    return false;
+    return true;
 }
 
-// Verifica se o CPF consta na lista de convidados do dia (guests.csv)
-static bool cpfConvidadoValido(const char* cpf) {
-    FILE* f = fopen("guests.csv", "r");
-    if (!f) return false;
-    char linha[64];
-    while (fgets(linha, sizeof linha, f)) {
-        linha[strcspn(linha, "\r\n")] = '\0';
-        if (strcmp(linha, cpf) == 0) {
-            fclose(f);
+// Verifica se o CPF consta na lista de convidados do dia
+static bool cpfConvidadoValido(const char* cpf, Usuario* convidados, int totalConvidados) {
+    for (int i = 0; i < totalConvidados; i++) {
+        if (strcmp(convidados[i].login, cpf) == 0) {
             return true;
         }
     }
-    fclose(f);
     return false;
 }
