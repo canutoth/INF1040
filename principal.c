@@ -4,10 +4,31 @@
 #include "login.h"
 #include "usuario.h"
 // #include "fila.h"
-// #include "estacionamento.h"
-// #include "vaga.h"
 
+// Sessão ativa: identificador de login do usuário autenticado
 static char usuario_sessao[MAX_LOGIN_LEN] = "";
+
+// Prototipações
+void IniciarSistema();
+void ExibirMenuPrincipal();
+void AutenticarUsuario();
+void AlocarVaga();
+void LiberarVaga();
+void GerenciaFila(const char* usuario);
+void AtualizarEstado();
+void ExibirResumo();
+void EncerrarSistema();
+void TratarErros(int codigo);
+
+// Função principal
+int main(void) {
+    IniciarSistema();
+    while (1) {
+        ExibirMenuPrincipal();
+    }
+    EncerrarSistema();
+    return 0;
+}
 
 /***************************************************************************************************************
 Nome: IniciarSistema()
@@ -32,8 +53,13 @@ Hipóteses:
 ****************************************************************************************************************/
 void IniciarSistema() {
     printf("Inicializando o sistema...\n");
-    // TODO: chamar função inicializarFila()
-    // TODO: chamar função para instanciar estacionamentos e vagas
+
+    // Exemplo: inicializar fila
+    // inicializarFila(&fila_global);
+
+    // TODO: instanciar estacionamentos e vagas
+    // TODO: carregar dados persistentes, se houver
+
     printf("Sistema iniciado com sucesso.\n");
 }
 
@@ -55,64 +81,58 @@ Descrição:
     1) Exibe menu de opções.
     2) Lê entrada do usuário via scanf.
     3) Encaminha para função correspondente.
-****************************************************************************************************************/
+ *************************************************************************************************/
 void ExibirMenuPrincipal() {
     int opcao;
+
     printf("\n--- Menu Principal ---\n");
-    printf("1. Login\n2. Consultar Vagas\n3. Alocar Vaga\n4. Liberar Vaga\n5. Exibir Resumo\n6. Sair\n");
+    printf("1. Login\n");
+    printf("2. Consultar Vagas\n");
+    printf("3. Alocar Vaga\n");
+    printf("4. Liberar Vaga\n");
+    printf("5. Exibir Resumo\n");
+    printf("6. Sair\n");
     printf("Escolha uma opção: ");
     scanf("%d", &opcao);
 
     switch (opcao) {
-        case 1: AutenticarUsuario(); break;
-        case 2: ExibirResumo(); break;
-        case 3: AlocarVaga(); break;
-        case 4: LiberarVaga(); break;
-        case 5: ExibirResumo(); break;
-        case 6: EncerrarSistema(); exit(0);
-        default: printf("Opção inválida.\n");
+        case 1:
+            AutenticarUsuario();
+            break;
+        case 2:
+            // TODO: implementar consulta de vagas
+            break;
+        case 3:
+            AlocarVaga();
+            break;
+        case 4:
+            LiberarVaga();
+            break;
+        case 5:
+            ExibirResumo();
+            break;
+        case 6:
+            EncerrarSistema();
+            exit(0);
+        default:
+            printf("Opção inválida.\n");
     }
 }
 
-/***************************************************************************************************************
-Nome: AutenticarUsuario()
-
-Objetivo:
-    - Solicitar login e senha do usuário via entrada padrão.
-    - Validar as credenciais informadas utilizando o módulo de autenticação.
-    - Armazenar o identificador do usuário na sessão ativa em caso de sucesso.
-    - Exibir mensagem de erro apropriada em caso de falha.
-
-Acoplamento:
-    - Entrada: login e senha (strings fornecidas pelo usuário via stdin).
-    - Saída: impressão em stdout (mensagens de sucesso ou erro).
-    - Dependência direta do módulo `login` via chamada a autentica().
-    - Dependência indireta de arquivos CSV (`users.csv`) manipulados internamente pelo módulo login.
-    - Atualização da variável global `usuario_sessao`.
-
-Condições de acoplamento:
-    AE: usuário fornecerá strings válidas via scanf para login e senha.
-    AE: função autentica(const char*, const char*) já implementada e funcional.
-    AS: se sucesso, login copiado para `usuario_sessao`.
-    AS: se falha, exibe mensagem adequada conforme código de erro.
-
-Descrição:
-    1) Solicita ao usuário a inserção de login e senha via terminal.
-    2) Invoca a função `autentica(login, senha)` para verificar as credenciais.
-    3) Se retorno for igual a AUTH_SUCCESS (0):
-        - Armazena o login em `usuario_sessao`.
-        - Exibe mensagem de autenticação bem-sucedida.
-    4) Se retorno for diferente de AUTH_SUCCESS:
-        - Chama a função TratarErros() passando o código de retorno.
-****************************************************************************************************************/
+/*************************************************************************************************
+ * AutenticarUsuario
+ * Solicita login e senha, autentica via módulo Login e armazena usuário na sessão
+ *************************************************************************************************/
 void AutenticarUsuario() {
     char login[64], senha[64];
-    printf("Login: "); scanf("%63s", login);
-    printf("Senha: "); scanf("%63s", senha);
+    printf("Login: ");
+    scanf("%s", login);
+    printf("Senha: ");
+    scanf("%s", senha);
+
     int resultado = autentica(login, senha);
     if (resultado == AUTH_SUCCESS) {
         strncpy(usuario_sessao, login, MAX_LOGIN_LEN - 1);
-        usuario_sessao[MAX_LOGIN_LEN - 1] = '\0';
         printf("Autenticação realizada com sucesso!\n");
     } else {
         TratarErros(resultado);
@@ -139,13 +159,8 @@ Descrição:
     3) Se não houver, chama GerenciaFila().
 ****************************************************************************************************************/
 void AlocarVaga() {
-    if (strlen(usuario_sessao) == 0) {
-        printf("Erro: usuário não autenticado.\n");
-        return;
-    }
-    // TODO: chamar função getVagaDisponivel()
-    // TODO: se -1, chamar GerenciaFila(usuario_sessao)
-    // TODO: senão, chamar OcuparVaga()
+    // TODO: usar getVagaDisponivel() e lógica de decisão
+    printf("Função de alocação de vaga chamada.\n");
 }
 
 /***************************************************************************************************************
@@ -166,12 +181,8 @@ Descrição:
     2) Executa AtualizarEstado() para processar fila.
 ****************************************************************************************************************/
 void LiberarVaga() {
-    if (strlen(usuario_sessao) == 0) {
-        printf("Erro: usuário não autenticado.\n");
-        return;
-    }
-    // TODO: chamar função LiberarVaga()
-    // TODO: chamar função AtualizarEstado()
+    // TODO: lógica de liberação de vaga
+    printf("Função de liberação de vaga chamada.\n");
 }
 
 /***************************************************************************************************************
@@ -192,8 +203,7 @@ Descrição:
     2) Se não, adiciona e ordena.
 ****************************************************************************************************************/
 void GerenciaFila(const char* usuario) {
-    // TODO: chamar consultarPosicaoNaFila()
-    // TODO: se não estiver na fila, chamar adicionarNaFila() e ordenarFilaPorPrioridade()
+    // TODO: verificar se já está na fila e adicionar se necessário
 }
 
 /***************************************************************************************************************
@@ -215,8 +225,7 @@ Descrição:
     3) Realiza alocação e remove da fila.
 ****************************************************************************************************************/
 void AtualizarEstado() {
-    // TODO: chamar getVagaDisponivel()
-    // TODO: se != -1, consultarPosicaoNaFila(), ocuparVaga(), removerDaFila()
+    // TODO: verificar disponibilidade e movimentar fila
 }
 
 /***************************************************************************************************************
@@ -239,9 +248,8 @@ Descrição:
 ****************************************************************************************************************/
 void ExibirResumo() {
     printf("\n--- Resumo do Sistema ---\n");
-    printf("Usuário autenticado: %s\n", strlen(usuario_sessao) ? usuario_sessao : "(nenhum)");
-    // TODO: chamar ListarEstacionamentos()
-    // TODO: exibir número de usuários na fila
+    printf("Usuário autenticado: %s\n", strlen(usuario_sessao) ? usuario_sessao : "(nenhum)\n");
+    // TODO: mostrar vagas disponíveis, usuários na fila etc.
 }
 
 /***************************************************************************************************************
@@ -264,8 +272,7 @@ Descrição:
 ****************************************************************************************************************/
 void EncerrarSistema() {
     printf("Encerrando sistema...\n");
-    // TODO: chamar liberarFila()
-    // TODO: chamar salvarEstado()
+    // TODO: liberar memória, salvar estado, etc.
 }
 
 /***************************************************************************************************************
@@ -299,4 +306,26 @@ void TratarErros(int codigo) {
         default:
             printf("Erro desconhecido.\n");
     }
+}
+
+int carregarUsuariosCSV(const char* nomeArquivo, Usuario* usuarios, int maxUsuarios) {
+    FILE* f = fopen(nomeArquivo, "r");
+    if (!f) return -1;
+
+    int count = 0;
+    char linha[256];
+    while (fgets(linha, sizeof linha, f) && count < maxUsuarios) {
+        char *login = strtok(linha, ",");
+        char *senha = strtok(NULL, ",");
+        char *tipo = strtok(NULL, ",\r\n");
+
+        if (login && senha && tipo) {
+            strncpy(usuarios[count].login, login, MAX_LOGIN_LEN - 1);
+            strncpy(usuarios[count].senha, senha, MAX_SENHA_LEN - 1);
+            usuarios[count].tipo = atoi(tipo);
+            count++;
+        }
+    }
+    fclose(f);
+    return count;
 }
