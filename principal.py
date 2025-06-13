@@ -6,7 +6,7 @@ import csv
 import sys
 import usuario
 import login
-# import fila        as fila_mod
+import fila        as fila_mod
 # import estacionamento as est_mod
 # import vaga        as vaga_mod
 
@@ -67,11 +67,20 @@ def IniciarSistema():
     usuario.usuarios.extend(usuario.convidados)      # acopla convidados à lista principal
 
     # 2. Fila
-    # TODO: Inicializar Fila
+    FILA = fila_mod.inicializarFila()
 
     # 3. Estacionamentos 
-    # TODO: Ler estado dos estacionamentos
-    print("✅ Sistema iniciado com sucesso.")   # ver testes 1 e 2 do PDF :contentReference[oaicite:0]{index=0}
+    """
+    TODO: Ler estado dos estacionamentos
+    try:
+        ESTACIONAMENTOS = est_mod.criar_estacionamentos_padrao()
+    except AttributeError:
+        ESTACIONAMENTOS = [
+            est_mod.Estacionamento("Bloco A", 10),
+            est_mod.Estacionamento("Bloco B", 10),
+        ] 
+    """
+    print("✅ Sistema iniciado com sucesso.")
 
 def ExibirMenuPrincipal():
     """Loop principal de interação."""
@@ -95,7 +104,7 @@ def ExibirMenuPrincipal():
         if acao:
             acao()
         else:
-            TratarErros("OPCAO_INVALIDA")        # ver teste 2 do PDF
+            TratarErros("OPCAO_INVALIDA")
 
 def AutenticarUsuario():
     """Solicita login/senha e efetua autenticação."""
@@ -116,7 +125,7 @@ def AlocarVaga():
         return
 
     est = _selecionar_estacionamento()
-    if not est:               # erro já tratado
+    if not est:
         return
 
     # TODO: vaga_disp = est_mod.getVagaDisponivel(est)
@@ -152,9 +161,9 @@ def LiberarVaga():
 
 def GerenciaFila(usuario_login):
     """Insere usuário na fila se ainda não estiver e reordena por prioridade."""
-    # TODO: if fila_mod.consultarPosicaoNaFila(FILA, usuario_login) == -1:
-        # TODO: fila_mod.adicionarNaFila(FILA, usuario_login)
-        # TODO: fila_mod.ordenarFilaPorPrioridade(FILA)
+    if fila_mod.consultarPosicaoNaFila(FILA, usuario_login) == -1:
+        fila_mod.adicionarNaFila(FILA, usuario_login)
+        fila_mod.ordenarFilaPorPrioridade(FILA)
 
 def AtualizarEstado(est):
     """Verifica vagas recém-liberadas e realoca primeiro da fila."""
@@ -163,10 +172,10 @@ def AtualizarEstado(est):
         return
 
     # há vaga livre – verificar fila
-    # TODO: prox = fila_mod.consultarPosicaoNaFila(FILA, None)  
+    prox = fila_mod.consultarPosicaoNaFila(FILA, None)  
     if prox != -1:
         # TODO: vaga_mod.OcuparVaga(vaga_disp, est)
-        # TODO: fila_mod.removerDaFila(FILA, prox)
+        fila_mod.removerDaFila(FILA, prox)
         print(f"🔔 Usuário {prox} foi chamado para ocupar a vaga {vaga_disp}.")
 
 def ExibirResumo():
