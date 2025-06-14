@@ -7,8 +7,8 @@ import sys
 import usuario
 import login
 import fila        as fila_mod
-# import estacionamento as est_mod
-# import vaga        as vaga_mod
+import estacionamento as est_mod
+import vagas        as vaga_mod
 
 # ---------------------------- variáveis globais ------------------------------
 FILA                = None          # ponteiro para a fila principal
@@ -175,16 +175,7 @@ def IniciarSistema():
     FILA = fila_mod.inicializarFila()
 
     # 3. Estacionamentos 
-    """
-    TODO: Ler estado dos estacionamentos
-    try:
-        ESTACIONAMENTOS = est_mod.criar_estacionamentos_padrao()
-    except AttributeError:
-        ESTACIONAMENTOS = [
-            est_mod.Estacionamento("Bloco A", 10),
-            est_mod.Estacionamento("Bloco B", 10),
-        ] 
-    """
+    #TODO: criar um arquivo base dos dados dos estacionamentos, com quantidade de vagas e etc
     print("✅ Sistema iniciado com sucesso.")
 
 """
@@ -317,12 +308,12 @@ def AlocarVaga():
     if not est:
         return
 
-    # TODO: vaga_disp = est_mod.getVagaDisponivel(est)
+    vaga_disp = est_mod.getVagaDisponivel(est)
     if vaga_disp == -1:
         GerenciaFila(USUARIO_ATUAL)
         TratarErros("SEM_VAGAS")
     else:
-        # TODO: vaga_mod.OcuparVaga(vaga_disp, est)
+        vaga_mod.OcuparVaga(vaga_disp, est)
         print(f"✅ Vaga {vaga_disp} ocupada. Boa estadia!")
 
 """
@@ -370,7 +361,7 @@ def LiberarVaga():
         TratarErros("OPCAO_INVALIDA")
         return
 
-    # TODO: resultado = vaga_mod.LiberarVaga(vaga_id, est)
+    resultado = vaga_mod.LiberarVaga(vaga_id, est)
     if resultado == 0:
         print("✅ Vaga liberada.")
         AtualizarEstado(est)
@@ -435,14 +426,14 @@ def GerenciaFila(usuario_login):
     """
 def AtualizarEstado(est):
     """Verifica vagas recém-liberadas e realoca primeiro da fila."""
-    # TODO: vaga_disp = est_mod.getVagaDisponivel(est)
+    vaga_disp = est_mod.getVagaDisponivel(est)
     if vaga_disp == -1:
         return
 
     # há vaga livre – verificar fila
     prox = fila_mod.consultarPosicaoNaFila(FILA, None)  
     if prox != -1:
-        # TODO: vaga_mod.OcuparVaga(vaga_disp, est)
+        vaga_mod.OcuparVaga(vaga_disp, est)
         fila_mod.removerDaFila(FILA, prox)
         print(f"🔔 Usuário {prox} foi chamado para ocupar a vaga {vaga_disp}.")
 
@@ -474,7 +465,7 @@ def ExibirResumo():
     """Mostra visão geral do sistema."""
     print("\n=======  RESUMO DO SISTEMA  =======")
     for est in ESTACIONAMENTOS:
-        # TODO: livres = est_mod.BuscarVagasDisponiveis(est)
+        livres = est_mod.BuscarVagasDisponiveis(est)
         print(f"{est.nome}: {livres}/{est.total_vagas} vagas livres")
 
     tamanho_fila = FILA.tamanho if FILA else 0
