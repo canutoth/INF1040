@@ -56,10 +56,10 @@ def _carregar_csv(caminho):
     dados = []
     try:
         with open(caminho, newline='', encoding="utf-8") as f:
-            reader = csv.reader(f, delimiter=';')
+            reader = csv.reader(f, delimiter=',')
             for row in reader:
                 if row:                        # login ; senha ; tipo
-                    dados.append((row[0], row[1], int(row[2])))
+                    dados.append((row[0].strip(), row[1].strip(), int(row[2])))
     except FileNotFoundError:
         pass                                   # primeiro uso: arquivos ainda não existem
     return dados
@@ -167,9 +167,10 @@ def IniciarSistema():
     global FILA, ESTACIONAMENTOS
 
     # 1. Carregar usuários e convidados
-    usuario.usuarios   = _carregar_csv("usuarios.csv")
-    usuario.convidados = _carregar_csv("convidados.csv")
-    usuario.usuarios.extend(usuario.convidados)      # acopla convidados à lista principal
+    usuario.usuarios   = _carregar_csv("users.csv")
+    print("Usuários carregados:", usuario.usuarios)
+   #TODO:  usuario.convidados = _carregar_csv("guests.csv")
+   #TODO:  usuario.usuarios.extend(usuario.convidados)      # acopla convidados à lista principal
 
     # 2. Fila
     FILA = fila_mod.inicializarFila()
@@ -208,6 +209,7 @@ def ExibirMenuPrincipal():
     """Loop principal de interação."""
     opcoes = {
         "1": AutenticarUsuario,
+        #TODO: "2": CriarUsuario,
         "2": AlocarVaga,
         "3": LiberarVaga,
         "4": ExibirResumo,
