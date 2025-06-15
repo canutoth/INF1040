@@ -52,16 +52,25 @@ ERROS = {
     Restrições:
        - Não cria nem modifica arquivos; somente leitura.
     """
-def _carregar_csv(caminho):
+def _carregar_csv(caminho, tipo_padrao=None):
     dados = []
     try:
         with open(caminho, newline='', encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=',')
             for row in reader:
-                if row:                        # login ; senha ; tipo
-                    dados.append((row[0].strip(), row[1].strip(), int(row[2])))
+                if not row:
+                    continue  # ignora linhas completamente vazias
+                login = row[0].strip() if len(row) > 0 else ""
+                senha = row[1].strip() if len(row) > 1 else ""
+                try:
+                    tipo = int(row[2]) if len(row) > 2 else tipo_padrao
+                except ValueError:
+                    tipo = tipo_padrao  # ignora erro de conversão e usa padrão
+
+                if login and senha and tipo is not None:
+                    dados.append((login, senha, tipo))
     except FileNotFoundError:
-        pass                                   # primeiro uso: arquivos ainda não existem
+        pass
     return dados
 
 """
@@ -135,33 +144,37 @@ def _selecionar_estacionamento():
 
 # ------------------------------ rotinas chave -------------------------------
 """
-    Nome: IniciarSistema()
+    Nome: _carregar_csv(caminho, tipo_padrao=None)
 
     Objetivo:
-       - Inicializar os componentes globais do sistema.
+       - Ler um arquivo .csv delimitado por vírgulas (`,`), convertendo cada linha em tupla (login, senha, tipo).
+       - Se a coluna de tipo não estiver presente na linha, utiliza o valor definido em tipo_padrao (se fornecido).
 
-    Acoplamento:
-       - leitura/escrita: arquivos 'usuarios.csv' e 'convidados.csv'.
-       - módulos: usuario, fila_mod (e futuramente est_mod, vaga_mod).
-       - retorno: None (afeta variáveis globais).
+    Parâmetros:
+       - caminho (str): Caminho do arquivo .csv a ser lido.
+       - tipo_padrao (int | None): Valor a ser usado como tipo caso a linha possua apenas login e senha.
 
-    Condições de Acoplamento:
-       AE: módulos importados estão disponíveis.
-       AS: FILA e ESTACIONAMENTOS são inicializados; listas de usuários carregadas.
+    Retorno:
+       - list[tuple[str, str, int]]: Lista de tuplas com as informações (login, senha, tipo).
 
-    Descrição:
-       1) Carregar CSVs de usuários e convidados via _carregar_csv().
-       2) Unir convidados em usuario.usuarios (autenticação unificada).
-       3) Inicializar FILA com fila_mod.inicializarFila().
-       4) (TODO) Carregar ou criar objetos Estacionamento.
-       5) Exibir mensagem de sucesso.
+    Comportamento:
+       1) Tenta abrir o arquivo usando codificação UTF-8.
+       2) Lê linha por linha com separador `,`.
+       3) Para cada linha:
+          a) Ignora linhas completamente vazias.
+          b) Lê login e senha (obrigatórios).
+          c) Lê o tipo, se disponível; caso contrário, utiliza tipo_padrao.
+          d) Linhas com campos ausentes ou tipo indefinido são ignoradas.
+       4) Em caso de erro de leitura ou ausência do arquivo, retorna lista vazia.
 
     Hipóteses:
-       - Funções auxiliares dos módulos importados funcionam conforme especificado.
+       - O arquivo pode conter registros com 2 ou 3 colunas.
+       - O tipo é convertido para `int` caso esteja presente na linha.
 
     Restrições:
-       - Deve ser chamada antes de qualquer operação de menu.
-    """
+       - Linhas inválidas (com campos ausentes ou mal formatadas) são descartadas silenciosamente.
+       - O tipo_padrao deve ser fornecido quando se espera arquivos sem a coluna tipo.
+"""
 def IniciarSistema():
     """Carrega CSVs, inicializa fila, estacionamentos e variáveis globais."""
     global FILA, ESTACIONAMENTOS
@@ -169,8 +182,9 @@ def IniciarSistema():
     # 1. Carregar usuários e convidados
     usuario.usuarios   = _carregar_csv("users.csv")
     print("Usuários carregados:", usuario.usuarios)
-   #TODO:  usuario.convidados = _carregar_csv("guests.csv")
-   #TODO:  usuario.usuarios.extend(usuario.convidados)      # acopla convidados à lista principal
+    usuario.convidados = _carregar_csv("guests.csv", tipo_padrao=2)
+    usuario.usuarios.extend(usuario.convidados)
+    print("Usuários após adicionar convidados:", usuario.usuarios)
 
     # 2. Fila
     FILA = fila_mod.inicializarFila()
