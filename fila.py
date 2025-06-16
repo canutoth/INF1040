@@ -224,6 +224,7 @@ def ordenarFilaPorPrioridade(fila):
     # Menor tipo = maior prioridade
     # sort() é estável por padrão no Python
     fila.sort(key=lambda usuario: usuario.getTipo())
+    #! talvez exibir o estado da fila após cada operação de ordenação
 
     # AS: fila reordenada por prioridade mantendo estabilidade
 

@@ -2,6 +2,18 @@ global usuarios, convidados
 usuarios = []
 convidados = []
 
+class Usuario:
+    def __init__(self, login, senha, tipo):
+        self.login = login
+        self.senha = senha
+        self.tipo = tipo
+
+    def getLogin(self):
+        return self.login
+    
+    def getTipo(self):
+        return self.tipo
+
 # Verifica se o login (matrícula) tem exatamente 8 dígitos numéricos
 def validaLogin(login):
     if len(login) == 8 and login.isdigit():
