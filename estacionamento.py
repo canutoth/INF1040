@@ -198,3 +198,14 @@ Hipóteses:
 """
 def getVagaDisponivel(est):
     return est.get_vaga_disponivel()
+
+def selecionarEstacionamento(estacionamentos):
+    if not estacionamentos:
+        return None
+    print("\nEstacionamentos disponíveis:")
+    ListarEstacionamentos(estacionamentos)
+    try:
+        op = int(input("Escolha (número) › "))
+        return estacionamentos[op-1]
+    except (ValueError, IndexError):
+        return -1
