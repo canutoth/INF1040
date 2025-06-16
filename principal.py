@@ -100,7 +100,7 @@ def _carregar_csv(caminho, tipo_padrao=None):
     """
 def _salvar_csv(caminho, dados):
     with open(caminho, "w", newline='', encoding="utf-8") as f:
-        writer = csv.writer(f, delimiter=';')
+        writer = csv.writer(f, delimiter=',')
         writer.writerows(dados)
 
 """
