@@ -30,13 +30,22 @@ Hipóteses:
     - O sistema onde a função é executada possui permissões para consultar os dados de autenticação.
 """
 
-def autentica(login, senha, usuarios):
-    # PASSO 1: iterar sobre cada usuário registrado
-    for user, pwd, tipo in usuarios:
-        # PASSO 2: comparar credenciais fornecidas com registro atual
-        if user == login and pwd == senha:
-            # AS: retorna True ao encontrar combinação válida
-            return True
-    # PASSO 3: nenhuma correspondência encontrada após percorrer toda a lista
-    return False
-    # AS: retorna False quando falha na autenticação
+#XXX: SUGESTÃO DA SOFIA
+
+#XXX: IMPORTANTE AQUI!! Alterei a função pq agora temos uma classe Usuario e uma lista de itens da classe, e não uma lista de tuplas
+# def autentica(login, senha, usuarios):
+#     # PASSO 1: iterar sobre cada usuário registrado
+#     for user, pwd, tipo in usuarios:
+#         # PASSO 2: comparar credenciais fornecidas com registro atual
+#         if user == login and pwd == senha:
+#             # AS: retorna True ao encontrar combinação válida
+#             return True
+#     # PASSO 3: nenhuma correspondência encontrada após percorrer toda a lista
+#     return False
+#     # AS: retorna False quando falha na autenticação
+
+def autentica(login, senha, lista_usuarios):
+    for user in lista_usuarios:
+        if user.login == login and user.senha == senha:
+            return user
+    return None

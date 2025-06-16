@@ -1,3 +1,32 @@
+#XXX: SUGESTAO DA SOFIA
+#XXX: TRANSFORMAR EM CLASSE
+
+class Vaga:
+    def __init__(self, id):
+        self.id = id
+        self.estado = 0  # 0 = vaga livre
+
+    def estaLivre(self):
+        return self.estado == 0
+
+    def estaOcupadaPor(self, login):
+        return self.estado == login
+
+    def ocupar(self, login):
+        if self.estaLivre():
+            self.estado = login
+            return True
+        return False
+
+    def liberar(self):
+        self.estado = 0
+
+    def status(self):
+        if self.estaLivre():
+            return f"Vaga {self.id:02d}: Livre"
+        return f"Vaga {self.id:02d}: Ocupada por {self.estado}"
+
+
 """
 Nome: OcupaVaga(vaga_id, est, usuario_login)
 
@@ -24,82 +53,86 @@ Hipóteses:
 
 """
 
-def OcupaVaga(vaga_id, est, usuario_login):
-    for idx, (id_vaga, status) in enumerate(est.vagas):
-        if id_vaga == vaga_id:
-            if status == "0":
-                est.vagas[idx] = (id_vaga, usuario_login)
-                est.salvar_vagas()
-                print(f"Vaga {vaga_id} ocupada por {usuario_login}.")
-                return 0
-            else:
-                print(f"Vaga {vaga_id} já está ocupada por {status}.")
-                return -1
-    print("ID de vaga inválido.")
-    return -1
+#XXX: SUGESTAO DA SOFIA
+#XXX: Agora que temos uma classe, isso tudo vai pra dentro dela, e só quem acessa é ela mesma, por ordem do estacionamento
 
-"""
-Nome: LiberarVaga(usuario_login, est)
+# def OcupaVaga(vaga_id, est, usuario_login):
+#     for idx, (id_vaga, status) in enumerate(est.vagas):
+#         if id_vaga == vaga_id:
+#             if status == "0":
+#                 est.vagas[idx] = (id_vaga, usuario_login)
+#                 est.salvar_vagas()
+#                 print(f"Vaga {vaga_id} ocupada por {usuario_login}.")
+#                 return 0
+#             else:
+#                 print(f"Vaga {vaga_id} já está ocupada por {status}.")
+#                 return -1
+#     print("ID de vaga inválido.")
+#     return -1
 
-Objetivo:
-    Liberar a vaga ocupada por um usuário específico no estacionamento.
+# """
+# Nome: LiberarVaga(usuario_login, est)
 
-Acoplamento:
-    usuario_login: str — identificador do usuário que ocupa a vaga.
-    est: Estacionamento — objeto representando o estacionamento onde a vaga está.
+# Objetivo:
+#     Liberar a vaga ocupada por um usuário específico no estacionamento.
 
-Condições de acoplamento:
-    AE: usuário está ocupando uma vaga no estacionamento.
-    AS: vaga é marcada como livre e o estado do estacionamento é salvo.
+# Acoplamento:
+#     usuario_login: str — identificador do usuário que ocupa a vaga.
+#     est: Estacionamento — objeto representando o estacionamento onde a vaga está.
 
-Descrição:
-    1) Percorrer a lista de vagas do estacionamento.
-    2) Identificar a vaga cujo status corresponde ao usuario_login.
-    3) Se encontrada, marcar a vaga como livre ("0") e salvar o estado.
-    4) Se nenhuma vaga estiver ocupada pelo usuário, exibir mensagem de erro.
+# Condições de acoplamento:
+#     AE: usuário está ocupando uma vaga no estacionamento.
+#     AS: vaga é marcada como livre e o estado do estacionamento é salvo.
 
-Hipóteses:
-    - O método salvar_vagas do objeto estacionamento funciona corretamente.
-    - O usuário_login é uma string válida e corresponde a um usuário existente.
-"""
+# Descrição:
+#     1) Percorrer a lista de vagas do estacionamento.
+#     2) Identificar a vaga cujo status corresponde ao usuario_login.
+#     3) Se encontrada, marcar a vaga como livre ("0") e salvar o estado.
+#     4) Se nenhuma vaga estiver ocupada pelo usuário, exibir mensagem de erro.
 
-def LiberarVaga(usuario_login, est):
-    for idx, (id_vaga, status) in enumerate(est.vagas):
-        if status == usuario_login:
-            est.vagas[idx] = (id_vaga, "0")
-            est.salvar_vagas()
-            print(f"Vaga {id_vaga} liberada para o usuário {usuario_login}.")
-            return 0
-    print(f"Nenhuma vaga ocupada pelo usuário {usuario_login}.")
-    return -1
+# Hipóteses:
+#     - O método salvar_vagas do objeto estacionamento funciona corretamente.
+#     - O usuário_login é uma string válida e corresponde a um usuário existente.
+# """
 
-"""Nome: VerificarStatus(vaga_id, est)
+# def LiberarVaga(usuario_login, est):
+#     for idx, (id_vaga, status) in enumerate(est.vagas):
+#         if status == usuario_login:
+#             est.vagas[idx] = (id_vaga, "0")
+#             est.salvar_vagas()
+#             print(f"Vaga {id_vaga} liberada para o usuário {usuario_login}.")
+#             return 0
+#     print(f"Nenhuma vaga ocupada pelo usuário {usuario_login}.")
+#     return -1
 
-Objetivo: exibir o status de uma vaga específica.
+# """Nome: VerificarStatus(vaga_id, est)
 
-Acoplamento:
-    vaga_id: int — ID da vaga.
-    est: Estacionamento — estacionamento onde está a vaga.
+# Objetivo: exibir o status de uma vaga específica.
 
-Condições de acoplamento:
-    AE: vaga_id existe no estacionamento.
-    AS: exibe se a vaga está livre ou ocupada (e por quem).
+# Acoplamento:
+#     vaga_id: int — ID da vaga.
+#     est: Estacionamento — estacionamento onde está a vaga.
 
-Descrição:
-    1) Procura a vaga pelo ID.
-    2) Exibe o status correspondente.
-    3) Se não existe, exibe erro.
+# Condições de acoplamento:
+#     AE: vaga_id existe no estacionamento.
+#     AS: exibe se a vaga está livre ou ocupada (e por quem).
 
-Hipóteses:
-    - O estado das vagas está correto na memória.
-"""
+# Descrição:
+#     1) Procura a vaga pelo ID.
+#     2) Exibe o status correspondente.
+#     3) Se não existe, exibe erro.
 
-def VerificarStatus(vaga_id, est):
-    for id_vaga, status in est.vagas:
-        if id_vaga == vaga_id:
-            if status == "0":
-                print(f"Vaga {vaga_id}: Livre.")
-            else:
-                print(f"Vaga {vaga_id}: Ocupada por {status}.")
-            return
-    print("ID de vaga inválido.")
+# Hipóteses:
+#     - O estado das vagas está correto na memória.
+# """
+
+
+# def VerificarStatus(vaga_id, est):
+#     for id_vaga, status in est.vagas:
+#         if id_vaga == vaga_id:
+#             if status == "0":
+#                 print(f"Vaga {vaga_id}: Livre.")
+#             else:
+#                 print(f"Vaga {vaga_id}: Ocupada por {status}.")
+#             return
+#     print("ID de vaga inválido.")

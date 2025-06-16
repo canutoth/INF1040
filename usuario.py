@@ -1,4 +1,5 @@
-global usuarios, convidados
+import csv
+
 usuarios = []
 convidados = []
 
@@ -9,11 +10,12 @@ class Usuario:
         self.tipo = tipo
 
     #TODO: confirmar se pode ser aqui, ou se tem que ser fora da classe
-    def getLogin(self):
-        return self.login
+    #XXX: deixa de ser necessário
+    # def getLogin(self):
+    #     return self.login
     
-    def getTipo(self):
-        return self.tipo
+    # def getTipo(self):
+    #     return self.tipo
 
 # Verifica se o login (matrícula) tem exatamente 8 dígitos numéricos
 def validaLogin(login):
@@ -148,3 +150,47 @@ def criaConvidado(cpf, senha):
     usuario = Usuario(cpf, senha, 2)
     usuarios.append(usuario)
     # AS: usuarios atualizado com novo registro (cpf, senha, tipo=2)
+
+def carregarUsuarios(caminho, tipo_padrao=None):
+    try:
+        with open(caminho, newline='', encoding="utf-8") as f:
+            reader = csv.reader(f, delimiter=',')
+            for row in reader:
+                if not row:
+                    continue
+                login = row[0].strip() if len(row) > 0 else ""
+                senha = row[1].strip() if len(row) > 1 else ""
+                try:
+                    tipo = int(row[2]) if len(row) > 2 else tipo_padrao
+                except ValueError:
+                    tipo = tipo_padrao
+
+                if login and senha and tipo is not None:
+                    u = Usuario(login, senha, tipo)
+                    if tipo == 2:
+                        convidados.append(u)
+                    usuarios.append(u)
+    except FileNotFoundError:
+        pass
+
+def salvarUsuarios(caminho_usuarios, caminho_convidados):
+    somente_usuarios = [u for u in usuarios if u not in convidados]
+
+    with open(caminho_usuarios, "w", newline='', encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=',')
+        for u in somente_usuarios:
+            writer.writerow([u.login, u.senha, u.tipo])
+
+    with open(caminho_convidados, "w", newline='', encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=',')
+        for u in convidados:
+            writer.writerow([u.login, u.senha, u.tipo])
+
+def listarUsuarios():
+    return usuarios[:]
+
+def buscarUsuario(login):
+    for u in usuarios:
+        if u.login == login:
+            return u
+    return None

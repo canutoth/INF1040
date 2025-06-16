@@ -73,7 +73,7 @@ def consultarPosicaoNaFila(fila, id_usuario):
     # PASSO 2: percorrer lista do início ao fim
     for i, usuario in enumerate(fila):
         # PASSO 3: comparar id do usuário atual com id_usuario procurado
-        if usuario.getLogin() == id_usuario:
+        if usuario.login == id_usuario:
             # AS: usuário encontrado, retorna posição (base 1)
             return i + 1
 
@@ -119,7 +119,7 @@ Restrições:
 
 def adicionarNaFila(fila, usuario):
     # PASSO 1: verificar se usuário já está na fila
-    if consultarPosicaoNaFila(fila, usuario.getLogin()) != -1:
+    if consultarPosicaoNaFila(fila, usuario.login) != -1:
         # AS: usuário já existe, retorna erro
         return -1
 
@@ -173,7 +173,7 @@ def removerDaFila(fila, id_usuario):
 
     # PASSO 2: procurar e remover usuário da lista
     for i, usuario in enumerate(fila):
-        if usuario.getLogin() == id_usuario:
+        if usuario.login == id_usuario:
             # PASSO 3: encontrou - remover da lista
             del fila[i]
             # AS: usuário removido com sucesso
@@ -223,7 +223,7 @@ def ordenarFilaPorPrioridade(fila):
     # PASSO 2: ordenar por tipo (prioridade) de forma estável
     # Menor tipo = maior prioridade
     # sort() é estável por padrão no Python
-    fila.sort(key=lambda usuario: usuario.getTipo())
+    fila.sort(key=lambda usuario: usuario.tipo)
     #! talvez exibir o estado da fila após cada operação de ordenação
 
     # AS: fila reordenada por prioridade mantendo estabilidade

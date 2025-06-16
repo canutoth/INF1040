@@ -1,4 +1,5 @@
 import csv
+from vagas import Vaga
 
 """
 Nome: Estacionamento(nome, arquivo_vagas)
@@ -27,110 +28,89 @@ Hipóteses:
 
 """
 class Estacionamento:
-    def __init__(self, nome, arquivo_vagas):
+    def __init__(self, nome):
         self.nome = nome
-        self.arquivo_vagas = arquivo_vagas
-        self.vagas = self._carregar_vagas()
+        self.vagas = []  # Lista de objetos Vaga
 
-    """Nome: _carregar_vagas()
-    Objetivo: carregar as vagas do estacionamento a partir de um arquivo CSV ou criar vagas padrão se o arquivo não existir.
+    def adicionarVaga(self, vaga):
+        self.vagas.append(vaga)
 
-    Acoplamento:
-        self.arquivo_vagas: str — caminho do arquivo CSV contendo os dados das vagas.
-        self.vagas: list[tuple[int, str]] — lista de tuplas (id_vaga, status) armazenando as vagas carregadas ou criadas.
+    def getVagaDisponivel(self):
+        for vaga in self.vagas:
+            if vaga.estaLivre():
+                return vaga
+        return None
 
-    Condições de acoplamento:
-        AE: self.arquivo_vagas é um caminho válido para leitura ou criação de arquivo.
-        AS: retorna uma lista de tuplas (id_vaga, status) com as vagas carregadas ou criadas.
+    def buscarVagaPorLogin(self, login):
+        for vaga in self.vagas:
+            if vaga.estaOcupadaPor(login):
+                return vaga
+        return None
 
-    Descrição:
-        1) Tenta abrir o arquivo CSV indicado por self.arquivo_vagas.
-        2) Para cada linha válida (com pelo menos 2 colunas), converte o primeiro elemento para inteiro (id_vaga) e lê o segundo como string (status).
-        3) Se o arquivo não for encontrado, cria 10 vagas padrão livres no formato (id_vaga, "0").
-        4) Salva imediatamente as vagas padrão no arquivo.
-        5) Retorna a lista de vagas.
-
-    Hipóteses:
-        - O arquivo CSV (se existir) contém linhas no formato esperado (int, str).
-        - O diretório onde o arquivo será criado ou lido possui permissão de leitura e escrita.
-    """
-    #TODO: não pode abrir .csv aqui, tem que criar uma variável que vai ser populada pelo principal.py
-    def _carregar_vagas(self):
-        vagas = []
-        try:
-            with open(self.arquivo_vagas, newline='') as csvfile:
-                reader = csv.reader(csvfile)
-                for row in reader:
-                    if len(row) >= 2:
-                        id_vaga = int(row[0])
-                        status = row[1]
-                        vagas.append((id_vaga, status))
-        except FileNotFoundError:
-            print(f"Arquivo {self.arquivo_vagas} não encontrado. Criando vagas padrão.")
-            vagas = [(i, "0") for i in range(10)]  # Exemplo: 10 vagas padrão
-            self.vagas = vagas
-            self.salvar_vagas()
-        return vagas
-
-    #TODO: não pode abrir .csv aqui, tem que criar uma variável que vai ser populada pelo principal.py
-    """Nome: salvar_vagas()
-
-    Objetivo: persistir o estado atual das vagas no arquivo CSV.
-
-    Acoplamento:
-        self.vagas: list[tuple[int, str]] — lista de vagas a serem salvas.
-        self.arquivo_vagas: str — caminho do arquivo CSV de destino.
-
-    Condições de acoplamento:
-        AE: self.vagas contém vagas válidas (int, str).
-        AS: arquivo CSV atualizado com as vagas atuais.
-
-    Descrição:
-        1) Abre o arquivo no modo escrita.
-        2) Grava as vagas linha por linha no formato (id_vaga, status).
-        3) Fecha o arquivo.
-
-    Hipóteses:
-        - O arquivo pode ser aberto no modo escrita.
-    """
-    def salvar_vagas(self):
-        with open(self.arquivo_vagas, mode='w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            for id_vaga, status in self.vagas:
-                writer.writerow([id_vaga, status])
-
-    """Nome: vagas_livres()
-
-    Objetivo: contar o número de vagas livres no estacionamento.
-
-    Acoplamento:
-        self.vagas: list[tuple[int, str]] — lista das vagas do estacionamento.
-
-    Condições de acoplamento:
-        AE: self.vagas contém (int, str).
-        AS: retorna o número de vagas livres (status == "0").
-
-    Descrição:
-        1) Percorre a lista de vagas.
-        2) Conta quantas têm status "0".
-        3) Retorna o total.
-
-    Hipóteses:
-        - O estado das vagas está corretamente carregado na memória.
-    """
-    def vagas_livres(self):
-        return sum(1 for _, status in self.vagas if status == "0")
-
-    def get_vaga_disponivel(self):
-        for id_vaga, status in self.vagas:
-            if status == "0":
-                return id_vaga
-        return -1
+    def liberarVagaDe(self, usuario):
+        vaga = self.buscarVagaPorLogin(usuario.login)
+        if vaga:
+            vaga.liberar()
+            return vaga.id
+        return None
     
-    #TODO: funções de acesso para: ALOCAR, LIBERAR e GET(vaga ocupada pelo usuario atual)
+    def ocuparVagaPorLogin(self, login):
+        vaga = self.getVagaDisponivel()
+        if vaga:
+            sucesso = vaga.ocupar(login)
+            return (True, vaga.id) if sucesso else (False, None)
+        return (False, None)
 
-#TODO: criar função de criar estacionamento (ex. inicializaFila, só q p est)
-#TODO: criar função de acesso que recebe o que vem csv e crie uma lista de vagas pra todo estacionamento
+    def vagas_livres(self):
+        return sum(1 for vaga in self.vagas if vaga.estaLivre())
+
+    def listarStatusVagas(self):
+        print(f"\nStatus das vagas no {self.nome}:")
+        for vaga in self.vagas:
+            status_str = "Livre" if vaga.estaLivre() else f"Ocupada por {vaga.estado}"
+            print(f"Vaga {vaga.id:02d}: {status_str}")
+    
+    def verificarStatusVaga(self, id_vaga):
+        for vaga in self.vagas:
+            if vaga.id == id_vaga:
+                return vaga.status()
+        return "ID de vaga inválido."
+    
+    def salvarEstadoEmCSV(self, writer):
+         linha = [self.nome] + [vaga.estado if not vaga.estaLivre() else "0" for vaga in self.vagas]
+         writer.writerow(linha)
+
+
+def criarEstacionamentosDeCSV(caminho_csv):
+    estacionamentos = []
+    try:
+        with open(caminho_csv, newline='', encoding="utf-8") as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                if not row:
+                    continue
+                nome_estacionamento = row[0]
+                vagas = []
+                for i in range(1, len(row)):
+                    try:
+                        estado = row[i].strip()
+                        vaga = Vaga(i)
+                        if estado != "0":
+                            vaga.ocupar(estado)
+                        vagas.append(vaga)
+                    except Exception:
+                        continue
+                est = Estacionamento(nome_estacionamento)
+                for vaga in vagas:
+                    est.adicionarVaga(vaga)
+                estacionamentos.append(est)
+    except FileNotFoundError:
+        print(f"Arquivo {caminho_csv} não encontrado.")
+    return estacionamentos
+
+def getVagaDisponivel(est):
+    vaga = est.getVagaDisponivel()
+    return vaga.id if vaga else -1
 
 """
 Nome: ListarEstacionamentos(estacionamentos)
@@ -156,63 +136,87 @@ def ListarEstacionamentos(estacionamentos):
     for idx, est in enumerate(estacionamentos, 1):
         print(f"{idx}. {est.nome} – Vagas livres: {est.vagas_livres()}")
 
-#TODO: isso é necessário? acho q pode ser uma função interna da classe Estacionamento
-"""
-Nome: BuscarVagasDisponiveis(est)
-
-Objetivo: exibir o status de todas as vagas de um estacionamento.
-
-Acoplamento:
-    est: Estacionamento — estacionamento a ser consultado.
-
-Condições de acoplamento:
-    AE: est é um objeto Estacionamento válido.
-    AS: imprime no terminal o status das vagas.
-
-Descrição:
-    1) Percorre as vagas do estacionamento.
-    2) Exibe se estão livres ou ocupadas e por quem.
-
-Hipóteses:
-    - O objeto Estacionamento está carregado corretamente.
-
-"""
-def BuscarVagasDisponiveis(est):
-    print(f"\nStatus das vagas no {est.nome}:")
-    for id_vaga, status in est.vagas:
-        status_str = "Livre" if status == "0" else f"Ocupada por {status}"
-        print(f"Vaga {id_vaga:02d}: {status_str}")
-
-"""
-Nome: getVagaDisponivel(est)
-
-Objetivo: retornar o ID da primeira vaga livre de um estacionamento.
-
-Acoplamento:
-    est: Estacionamento — estacionamento a ser consultado.
-
-Condições de acoplamento:
-    AE: est é um objeto Estacionamento válido.
-    AS: retorna ID da primeira vaga livre ou -1.
-
-Descrição:
-    1) Chama est.get_vaga_disponivel().
-    2) Retorna o resultado.
-
-Hipóteses:
-    - O método do estacionamento está correto.
-
-"""
-def getVagaDisponivel(est):
-    return est.get_vaga_disponivel()
-
 def selecionarEstacionamento(estacionamentos):
     if not estacionamentos:
+        print("⚠️ Nenhum estacionamento disponível.")
         return None
-    print("\nEstacionamentos disponíveis:")
-    ListarEstacionamentos(estacionamentos)
-    try:
-        op = int(input("Escolha (número) › "))
-        return estacionamentos[op-1]
-    except (ValueError, IndexError):
-        return -1
+    while True:
+        ListarEstacionamentos(estacionamentos)
+        escolha = input("Escolha (número) › ").strip()
+        if not escolha:
+            return None
+        try:
+            op = int(escolha)
+            return estacionamentos[op - 1]
+        except (ValueError, IndexError):
+            print("⚠️ Opção inválida. Tente novamente ou deixe vazio para cancelar.")
+
+    
+#XXX: ALTERAÇÕES DA SOFIA
+#XXX: ALTERANDO PARA MELHORAR ACOPLAMENTO E ENCAPSULAMENTO
+    # """Nome: _carregar_vagas()
+    # Objetivo: carregar as vagas do estacionamento a partir de um arquivo CSV ou criar vagas padrão se o arquivo não existir.
+
+    # Acoplamento:
+    #     self.arquivo_vagas: str — caminho do arquivo CSV contendo os dados das vagas.
+    #     self.vagas: list[tuple[int, str]] — lista de tuplas (id_vaga, status) armazenando as vagas carregadas ou criadas.
+
+    # Condições de acoplamento:
+    #     AE: self.arquivo_vagas é um caminho válido para leitura ou criação de arquivo.
+    #     AS: retorna uma lista de tuplas (id_vaga, status) com as vagas carregadas ou criadas.
+
+    # Descrição:
+    #     1) Tenta abrir o arquivo CSV indicado por self.arquivo_vagas.
+    #     2) Para cada linha válida (com pelo menos 2 colunas), converte o primeiro elemento para inteiro (id_vaga) e lê o segundo como string (status).
+    #     3) Se o arquivo não for encontrado, cria 10 vagas padrão livres no formato (id_vaga, "0").
+    #     4) Salva imediatamente as vagas padrão no arquivo.
+    #     5) Retorna a lista de vagas.
+
+    # Hipóteses:
+    #     - O arquivo CSV (se existir) contém linhas no formato esperado (int, str).
+    #     - O diretório onde o arquivo será criado ou lido possui permissão de leitura e escrita.
+    # """
+    # #TODO: não pode abrir .csv aqui, tem que criar uma variável que vai ser populada pelo principal.py
+    # def _carregar_vagas(self):
+    #     vagas = []
+    #     try:
+    #         with open(self.arquivo_vagas, newline='') as csvfile:
+    #             reader = csv.reader(csvfile)
+    #             for row in reader:
+    #                 if len(row) >= 2:
+    #                     id_vaga = int(row[0])
+    #                     status = row[1]
+    #                     vagas.append((id_vaga, status))
+    #     except FileNotFoundError:
+    #         print(f"Arquivo {self.arquivo_vagas} não encontrado. Criando vagas padrão.")
+    #         vagas = [(i, "0") for i in range(10)]  # Exemplo: 10 vagas padrão
+    #         self.vagas = vagas
+    #         self.salvar_vagas()
+    #     return vagas
+
+    # #TODO: não pode abrir .csv aqui, tem que criar uma variável que vai ser populada pelo principal.py
+    # """Nome: salvar_vagas()
+
+    # Objetivo: persistir o estado atual das vagas no arquivo CSV.
+
+    # Acoplamento:
+    #     self.vagas: list[tuple[int, str]] — lista de vagas a serem salvas.
+    #     self.arquivo_vagas: str — caminho do arquivo CSV de destino.
+
+    # Condições de acoplamento:
+    #     AE: self.vagas contém vagas válidas (int, str).
+    #     AS: arquivo CSV atualizado com as vagas atuais.
+
+    # Descrição:
+    #     1) Abre o arquivo no modo escrita.
+    #     2) Grava as vagas linha por linha no formato (id_vaga, status).
+    #     3) Fecha o arquivo.
+
+    # Hipóteses:
+    #     - O arquivo pode ser aberto no modo escrita.
+    # """
+    # def salvar_vagas(self):
+    #     with open(self.arquivo_vagas, mode='w', newline='') as csvfile:
+    #         writer = csv.writer(csvfile)
+    #         for id_vaga, status in self.vagas:
+    #             writer.writerow([id_vaga, status])

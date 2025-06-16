@@ -8,12 +8,11 @@ import usuario as usuario_mod
 import login as login_mod
 import fila        as fila_mod
 import estacionamento as est_mod
-import vagas        as vaga_mod
 
 # ---------------------------- variáveis globais ------------------------------
 FILA                = None          # ponteiro para a fila principal
 ESTACIONAMENTOS     = []            # lista de objetos/estruturas de estacionamento
-USUARIO_ATUAL       = None          # login do usuário com sessão ativa
+USUARIO_ATUAL       = None          # objeto usuário com sessão ativa
 
 # Mapa simples de erros para mensagens
 ERROS = {
@@ -25,52 +24,19 @@ ERROS = {
 }
 
 # ------------------------------ rotinas chave -------------------------------
-"""
-    Nome: _carregar_csv(caminho, tipo_padrao=None)
-
-    Objetivo:
-       - Ler um arquivo .csv delimitado por vírgulas (`,`), convertendo cada linha em tupla (login, senha, tipo).
-       - Se a coluna de tipo não estiver presente na linha, utiliza o valor definido em tipo_padrao (se fornecido).
-
-    Parâmetros:
-       - caminho (str): Caminho do arquivo .csv a ser lido.
-       - tipo_padrao (int | None): Valor a ser usado como tipo caso a linha possua apenas login e senha.
-
-    Retorno:
-       - list[tuple[str, str, int]]: Lista de tuplas com as informações (login, senha, tipo).
-
-    Comportamento:
-       1) Tenta abrir o arquivo usando codificação UTF-8.
-       2) Lê linha por linha com separador `,`.
-       3) Para cada linha:
-          a) Ignora linhas completamente vazias.
-          b) Lê login e senha (obrigatórios).
-          c) Lê o tipo, se disponível; caso contrário, utiliza tipo_padrao.
-          d) Linhas com campos ausentes ou tipo indefinido são ignoradas.
-       4) Em caso de erro de leitura ou ausência do arquivo, retorna lista vazia.
-
-    Hipóteses:
-       - O arquivo pode conter registros com 2 ou 3 colunas.
-       - O tipo é convertido para `int` caso esteja presente na linha.
-
-    Restrições:
-       - Linhas inválidas (com campos ausentes ou mal formatadas) são descartadas silenciosamente.
-       - O tipo_padrao deve ser fornecido quando se espera arquivos sem a coluna tipo.
-"""
 def IniciarSistema():
     global FILA, ESTACIONAMENTOS
 
     # 1. Carregar usuários e convidados
-    #TODO: pensar sobre como inicializar essas coisas
-    usuario_mod.usuarios   = _carregar_csv("users.csv")
-    usuario_mod.convidados = _carregar_csv("guests.csv", tipo_padrao=2)
-    usuario_mod.usuarios.extend(usuario_mod.convidados)
+    usuario_mod.carregarUsuarios("users.csv")
+    usuario_mod.carregarUsuarios("guests.csv", tipo_padrao=2)
 
     # 2. Fila
     FILA = fila_mod.inicializarFila()
 
     # 3. Estacionamentos 
-    #TODO: criar um arquivo base dos dados dos estacionamentos, com quantidade de vagas e etc
+    ESTACIONAMENTOS = est_mod.criarEstacionamentosDeCSV("estacionamentos.csv")
+
     print("✅ Sistema iniciado com sucesso.")
 
 """
@@ -158,9 +124,10 @@ def AutenticarUsuario():
     login_inp = input("Login › ").strip()
     senha_inp = input("Senha › ").strip()
 
-    if login_mod.autentica(login_inp, senha_inp, usuario_mod.usuarios):
-        USUARIO_ATUAL = login_inp
-        print(f"✅ Bem-vindo(a), {USUARIO_ATUAL}!")
+    usuario = login_mod.autentica(login_inp, senha_inp, usuario_mod.listarUsuarios())
+    if usuario:
+        USUARIO_ATUAL = usuario
+        print(f"✅ Bem-vindo(a), {USUARIO_ATUAL.login}!")
     else:
         TratarErros("AUTH_FAIL")
 
@@ -199,19 +166,19 @@ def AlocarVaga():
         TratarErros("NAO_AUTENTICADO")
         return
 
-    est = est_mod.selecionarEstacionamento()
+    est = est_mod.selecionarEstacionamento(ESTACIONAMENTOS)
+    if est == -1:
+        TratarErros("OPCAO_INVALIDA")
     if not est:
         print("Nenhum estacionamento selecionado para alocar vaga")
         return
-    if est == -1:
-        TratarErros("OPCAO_INVALIDA")
-
+    
     vaga_disp = est_mod.getVagaDisponivel(est)
     if vaga_disp == -1:
         GerenciaFila(USUARIO_ATUAL)
         TratarErros("SEM_VAGAS")
     else:
-        vaga_mod.OcupaVaga(vaga_disp, est, USUARIO_ATUAL.getLogin)
+        est.ocuparVagaPorLogin(USUARIO_ATUAL.login)
         print(f"✅ Vaga {vaga_disp} ocupada. Boa estadia!")
 
 """
@@ -247,29 +214,15 @@ def LiberarVaga():
     if USUARIO_ATUAL is None:
         TratarErros("NAO_AUTENTICADO")
         return
-    
-   #TODO: login = usuario.getLogin()
-    #TODO: PENSAR: for cada estacionamento, chamar getVagaOcupada(login), se achar, retorna em vaga, se não, vazio
-    #TODO: se tem vaga, vaga = est_mod.getVagaOcupada(login)
-      #TODO: est_mod.liberaVaga(vaga)
 
-    est = est_mod.selecionarEstacionamento(ESTACIONAMENTOS)
-    if not est:
-        print("Nenhum estacionamento selecionado para liberar vaga")
-        return
+    for est in ESTACIONAMENTOS:
+        vaga_id = est.liberarVagaDe(USUARIO_ATUAL)
+        if vaga_id is not None:
+            print(f"✅ Vaga {vaga_id} liberada no estacionamento '{est.nome}'.")
+            AtualizarEstado(est)
+            return
 
-    try:
-        vaga_id = int(input("Informe o ID da vaga a liberar › "))
-    except ValueError:
-        TratarErros("OPCAO_INVALIDA")
-        return
-
-    resultado = vaga_mod.LiberarVaga(vaga_id, est)
-    if resultado == 0:
-        print("✅ Vaga liberada.")
-        AtualizarEstado(est)
-    else:
-        TratarErros("VAGA_NAO_ENCONTRADA")
+    TratarErros("VAGA_NAO_ENCONTRADA")
 
 """
     Nome: GerenciaFila(usuario_login)
@@ -295,9 +248,9 @@ def LiberarVaga():
     Restrições:
        - Nenhum.
     """
-def GerenciaFila(usuario_login):
-    if fila_mod.consultarPosicaoNaFila(FILA, usuario_login) == -1:
-        fila_mod.adicionarNaFila(FILA, usuario_login)
+def GerenciaFila(usuario):
+    if fila_mod.consultarPosicaoNaFila(FILA, usuario) == -1:
+        fila_mod.adicionarNaFila(FILA, usuario)
         fila_mod.ordenarFilaPorPrioridade(FILA)
 
 """
@@ -327,17 +280,17 @@ def GerenciaFila(usuario_login):
        - Contém TODOs pendentes.
     """
 def AtualizarEstado(est):
-    vaga_disp = est_mod.getVagaDisponivel(est)
-    if vaga_disp == -1:
+    vaga = est.getVagaDisponivel
+    if not vaga:
         return
 
     # há vaga livre – verificar fila
     prox = fila_mod.retornaPrimeiro(FILA)  
-    if prox != None:
-        #TODO: vaga_mod.OcuparVaga(vaga_disp, est, prox.getLogin)
-        #TODO: criar função getLogin no módulo usuário
-        fila_mod.removerDaFila(FILA, prox)
-        print(f"🔔 Usuário {prox} foi chamado para ocupar a vaga {vaga_disp}.")
+    if prox is not None:
+        sucesso = est.ocuparVagaPorLogin(prox.login)
+        if sucesso:
+            fila_mod.removerDaFila(FILA, prox)
+            print(f"🔔 Usuário {prox.login} foi chamado para ocupar a vaga {vaga}.")
 
 """
     Nome: ExibirResumo()
@@ -400,9 +353,12 @@ def ExibirResumo():
        - Não retorna (termina execução do Python).
     """
 def EncerrarSistema():
-    lista_somente_usuarios = [u for u in usuario_mod.usuarios if u not in usuario_mod.convidados]
-    _salvar_csv("users.csv", lista_somente_usuarios)
-    _salvar_csv("guests.csv", usuario_mod.convidados)
+    usuario_mod.salvarUsuarios("users.csv", "guests.csv")
+    with open("estacionamentos.csv", mode="w", newline='', encoding="utf-8") as f:
+       writer = csv.writer(f)
+       for est in ESTACIONAMENTOS:
+          est.salvarEstadoEmCSV(writer)
+
     print("✔️  Dados salvos. Até logo!")
     sys.exit(0)
 
@@ -437,81 +393,81 @@ if __name__ == "__main__":
     IniciarSistema()
     ExibirMenuPrincipal()
 
-# ---------------------------- utilidades internas ----------------------------
-"""
-    Nome: _carregar_csv(caminho)
+# # ---------------------------- utilidades internas ----------------------------
+# """
+#     Nome: _carregar_csv(caminho)
 
-    Objetivo:
-       - Ler um arquivo .csv delimitado por ‘;’ e convertê-lo em lista de tuplas.
+#     Objetivo:
+#        - Ler um arquivo .csv delimitado por ‘;’ e convertê-lo em lista de tuplas.
 
-    Acoplamento:
-       - caminho: str — path para o arquivo .csv.
-       - retorno: list[tuple[str, str, int]] — cada tupla → (login, senha, tipo).
+#     Acoplamento:
+#        - caminho: str — path para o arquivo .csv.
+#        - retorno: list[tuple[str, str, int]] — cada tupla → (login, senha, tipo).
 
-    Condições de Acoplamento:
-       AE: caminho deve apontar para um arquivo .csv válido ou inexistente.
-       AS: Caso o arquivo exista, retorna estrutura list[...] com os registros lidos.
-       AS: Se o arquivo não existir, retorna lista vazia (primeira execução).
+#     Condições de Acoplamento:
+#        AE: caminho deve apontar para um arquivo .csv válido ou inexistente.
+#        AS: Caso o arquivo exista, retorna estrutura list[...] com os registros lidos.
+#        AS: Se o arquivo não existir, retorna lista vazia (primeira execução).
 
-    Descrição:
-       1) Tentar abrir o arquivo no modo leitura, encoding UTF-8.
-       2) Iterar sobre csv.reader(), convertendo cada linha não vazia
-          em (login, senha, int(tipo)).
-       3) Em FileNotFoundError, capturar exceção e retornar [].
+#     Descrição:
+#        1) Tentar abrir o arquivo no modo leitura, encoding UTF-8.
+#        2) Iterar sobre csv.reader(), convertendo cada linha não vazia
+#           em (login, senha, int(tipo)).
+#        3) Em FileNotFoundError, capturar exceção e retornar [].
 
-    Hipóteses:
-       - Arquivo, se existir, está formatado como “login;senha;tipo”.
+#     Hipóteses:
+#        - Arquivo, se existir, está formatado como “login;senha;tipo”.
 
-    Restrições:
-       - Não cria nem modifica arquivos; somente leitura.
-    """
-def _carregar_csv(caminho, tipo_padrao=None):
-    try:
-        with open(caminho, newline='', encoding="utf-8") as f:
-            reader = csv.reader(f, delimiter=',')
-            for row in reader:
-                if not row:
-                    continue  # ignora linhas completamente vazias
-                login = row[0].strip() if len(row) > 0 else ""
-                senha = row[1].strip() if len(row) > 1 else ""
-                try:
-                    tipo = int(row[2]) if len(row) > 2 else tipo_padrao
-                except ValueError:
-                    tipo = tipo_padrao  # ignora erro de conversão e usa padrão
+#     Restrições:
+#        - Não cria nem modifica arquivos; somente leitura.
+#     """
+# def _carregar_csv(caminho, tipo_padrao=None):
+#     try:
+#         with open(caminho, newline='', encoding="utf-8") as f:
+#             reader = csv.reader(f, delimiter=',')
+#             for row in reader:
+#                 if not row:
+#                     continue  # ignora linhas completamente vazias
+#                 login = row[0].strip() if len(row) > 0 else ""
+#                 senha = row[1].strip() if len(row) > 1 else ""
+#                 try:
+#                     tipo = int(row[2]) if len(row) > 2 else tipo_padrao
+#                 except ValueError:
+#                     tipo = tipo_padrao  # ignora erro de conversão e usa padrão
 
-                if login and senha and tipo is not None:
-                    #TODO: isso rompe com o encapsulamento?
-                    usuario_mod.criaInterno(login, senha)
-    except FileNotFoundError:
-        pass
+#                 if login and senha and tipo is not None:
+#                     #TODO: isso rompe com o encapsulamento?
+#                     usuario_mod.criaInterno(login, senha)
+#     except FileNotFoundError:
+#         pass
 
-"""
-    Nome: _salvar_csv(caminho, dados)
+# """
+#     Nome: _salvar_csv(caminho, dados)
 
-    Objetivo:
-       - Persistir em disco a lista de tuplas recebida, no formato CSV ‘;’.
+#     Objetivo:
+#        - Persistir em disco a lista de tuplas recebida, no formato CSV ‘;’.
 
-    Acoplamento:
-       - caminho: str — destino do arquivo .csv.
-       - dados: list[tuple] — estrutura já validada a ser gravada.
-       - retorno: None.
+#     Acoplamento:
+#        - caminho: str — destino do arquivo .csv.
+#        - dados: list[tuple] — estrutura já validada a ser gravada.
+#        - retorno: None.
 
-    Condições de Acoplamento:
-       AE: dados deve ser iterável contendo sub-iteráveis (tuplas ou listas).
-       AS: Arquivo é sobrescrito/ criado com conteúdo de dados.
+#     Condições de Acoplamento:
+#        AE: dados deve ser iterável contendo sub-iteráveis (tuplas ou listas).
+#        AS: Arquivo é sobrescrito/ criado com conteúdo de dados.
 
-    Descrição:
-       1) Abrir (ou criar) o arquivo no modo escrita, encoding UTF-8.
-       2) Utilizar csv.writer(delimiter=';') para gravar cada tupla.
+#     Descrição:
+#        1) Abrir (ou criar) o arquivo no modo escrita, encoding UTF-8.
+#        2) Utilizar csv.writer(delimiter=';') para gravar cada tupla.
 
-    Hipóteses:
-       - Permissões de escrita no diretório estão concedidas.
+#     Hipóteses:
+#        - Permissões de escrita no diretório estão concedidas.
 
-    Restrições:
-       - Sobrescreve totalmente o arquivo; não há append incremental.
-    """
-def _salvar_csv(caminho, dados):
-    #TODO: pensar em nova forma de atualizar, sem romper com o encapsulamento, agora que usuarios é lista de Usuario
-    with open(caminho, "w", newline='', encoding="utf-8") as f:
-        writer = csv.writer(f, delimiter=',')
-        writer.writerows(dados)
+#     Restrições:
+#        - Sobrescreve totalmente o arquivo; não há append incremental.
+#     """
+# def _salvar_csv(caminho, dados):
+#     #TODO: pensar em nova forma de atualizar, sem romper com o encapsulamento, agora que usuarios é lista de Usuario
+#     with open(caminho, "w", newline='', encoding="utf-8") as f:
+#         writer = csv.writer(f, delimiter=',')
+#         writer.writerows(dados)
