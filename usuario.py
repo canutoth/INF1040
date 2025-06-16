@@ -11,7 +11,8 @@ convidados = []
 
     Retorno:
         dict {"login": str, "senha": str, "tipo": int}
-    """
+"""
+
 def novo_usuario(login: str, senha: str, tipo: int) -> dict:
     """Cria e devolve o dicionário-usuário."""
     return {"login": login, "senha": senha, "tipo": tipo}
@@ -38,7 +39,8 @@ def novo_usuario(login: str, senha: str, tipo: int) -> dict:
 
     Restrições:
        - Nenhuma.
-    """
+"""
+
 def validaLogin(login: str) -> bool:
     """Retorna True se matrícula tem 7 dígitos numéricos."""
     return len(login) == 7 and login.isdigit()
