@@ -61,6 +61,7 @@ def IniciarSistema():
     global FILA, ESTACIONAMENTOS
 
     # 1. Carregar usuários e convidados
+    #TODO: pensar sobre como inicializar essas coisas
     usuario_mod.usuarios   = _carregar_csv("users.csv")
     usuario_mod.convidados = _carregar_csv("guests.csv", tipo_padrao=2)
     usuario_mod.usuarios.extend(usuario_mod.convidados)
@@ -252,7 +253,7 @@ def LiberarVaga():
     #TODO: se tem vaga, vaga = est_mod.getVagaOcupada(login)
       #TODO: est_mod.liberaVaga(vaga)
 
-    est = _selecionar_estacionamento()
+    est = est_mod.selecionarEstacionamento(ESTACIONAMENTOS)
     if not est:
         print("Nenhum estacionamento selecionado para liberar vaga")
         return
@@ -465,7 +466,6 @@ if __name__ == "__main__":
        - Não cria nem modifica arquivos; somente leitura.
     """
 def _carregar_csv(caminho, tipo_padrao=None):
-    dados = []
     try:
         with open(caminho, newline='', encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=',')
@@ -482,10 +482,8 @@ def _carregar_csv(caminho, tipo_padrao=None):
                 if login and senha and tipo is not None:
                     #TODO: isso rompe com o encapsulamento?
                     usuario_mod.criaInterno(login, senha)
-                    dados.append(usuario)
     except FileNotFoundError:
         pass
-    return dados
 
 """
     Nome: _salvar_csv(caminho, dados)
