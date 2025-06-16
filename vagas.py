@@ -1,27 +1,118 @@
-#XXX: SUGESTAO DA SOFIA
-#XXX: TRANSFORMAR EM CLASSE
+"""
+    Nome: nova_vaga(id_vaga)
 
-class Vaga:
-    def __init__(self, id):
-        self.id = id
-        self.estado = 0  # 0 = vaga livre
+    Objetivo:
+        Criar e devolver um registro–vaga no formato dicionário.
 
-    def estaLivre(self):
-        return self.estado == 0
+    Acoplamento:
+        - id_vaga: int — identificador único dentro do estacionamento.
+        - retorno: dict — {"id": int, "estado": 0}.
 
-    def estaOcupadaPor(self, login):
-        return self.estado == login
+    Condições de Acoplamento:
+        AE: id_vaga inteiro positivo.
+        AS: retorna dicionário com estado livre (0).
 
-    def ocupar(self, login):
-        if self.estaLivre():
-            self.estado = login
-            return True
-        return False
+    Descrição:
+        1) Monta dict {'id': id_vaga, 'estado': 0}.
+        2) Retorna o dicionário.
 
-    def liberar(self):
-        self.estado = 0
+    Hipóteses:
+        - Cada estacionamento garante unicidade de id_vaga.
 
-    def status(self):
-        if self.estaLivre():
-            return f"Vaga {self.id:02d}: Livre"
-        return f"Vaga {self.id:02d}: Ocupada por {self.estado}"
+    Restrições:
+        - Estado “0” representa vaga livre; qualquer string = login ocupado.
+    """
+def nova_vaga(id_vaga: int) -> dict:
+    return {"id": id_vaga, "estado": 0}
+
+"""
+    Nome: estaLivre(vaga)
+
+    Objetivo:
+        Verificar se a vaga está livre.
+
+    Acoplamento:
+        - vaga: dict — registro gerado por nova_vaga().
+        - retorno: bool.
+
+    Descrição:
+        Retorna True se vaga['estado'] == 0.
+    """
+def estaLivre(vaga: dict) -> bool:
+    return vaga["estado"] == 0
+
+"""
+    Nome: estaOcupadaPor(vaga, login)
+
+    Objetivo:
+        Conferir se a vaga está ocupada pelo usuário `login`.
+
+    Retorno:
+        bool.
+    """
+def estaOcupadaPor(vaga: dict, login: str) -> bool:
+    return vaga["estado"] == login
+
+"""
+    Nome: ocupar(vaga, login)
+
+    Objetivo:
+        Marcar a vaga como ocupada pelo login informado.
+
+    Acoplamento:
+        - retorno: bool — True se ocupação realizada.
+
+    Descrição:
+        1) Se estaLivre() → grava login em vaga['estado'] e retorna True.
+        2) Caso contrário, retorna False.
+    """
+def ocupar(vaga: dict, login: str) -> bool:
+    if estaLivre(vaga):
+        vaga["estado"] = login
+        return True
+    return False
+
+"""
+    Nome: liberar(vaga)
+
+    Objetivo:
+        Tornar a vaga livre novamente (estado = 0).
+
+    Retorno:
+        None.
+    """
+def liberar(vaga: dict) -> None:
+    vaga["estado"] = 0
+
+"""
+    Nome: status(vaga)
+
+    Objetivo:
+        Gerar string legível do estado atual da vaga.
+
+    Retorno:
+        str — "Vaga 01: Livre" ou "Vaga 01: Ocupada por <login>".
+    """
+def status(vaga: dict) -> str:
+    if estaLivre(vaga):
+        return f"Vaga {vaga['id']:02d}: Livre"
+    return f"Vaga {vaga['id']:02d}: Ocupada por {vaga['estado']}"
+
+"""
+    Nome: ocupaVagaPorId(vagas, vaga_id, login)
+
+    Objetivo:
+        Localizar a vaga de id == vaga_id na lista e tentar ocupá-la.
+
+    Acoplamento:
+        - vagas: list[dict] — coleção de registros–vaga.
+        - retorno: bool — True se ocupada com sucesso.
+
+    Descrição:
+        1) Busca vaga pelo id.
+        2) Se não encontrada → False.
+        3) Se encontrada → chamar ocupar(); retorna resultado.
+    """
+def ocupaVagaPorId(vagas: list[dict], vaga_id: int, login: str) -> bool:
+    alvo = next((v for v in vagas if v["id"] == vaga_id), None)
+    return ocupar(alvo, login) if alvo else False

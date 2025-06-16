@@ -4,206 +4,268 @@ usuarios = []
 convidados = []
 
 """
-    Nome: Usuario(login, senha, tipo)
+    Nome: novo_usuario(login, senha, tipo)
 
     Objetivo:
-        Representar um usuário do sistema.
+        Criar e retornar o dicionário-usuário no padrão único do sistema.
 
-    Atributos:
-        - login: str — identificador único (matrícula de 7 dígitos ou CPF).
-        - senha: str — credencial de acesso.
-        - tipo : int — 1=INTERNO, 2=CONVIDADO, 3=EXTERNO.
+    Retorno:
+        dict {"login": str, "senha": str, "tipo": int}
     """
-class Usuario:
-    def __init__(self, login, senha, tipo):
-        self.login = login
-        self.senha = senha
-        self.tipo = tipo
+def novo_usuario(login: str, senha: str, tipo: int) -> dict:
+    """Cria e devolve o dicionário-usuário."""
+    return {"login": login, "senha": senha, "tipo": tipo}
 
 """
     Nome: validaLogin(login)
 
     Objetivo:
-        Checar se a matrícula interna atende ao formato exigido.
+       - Verificar se a matrícula interna possui formato correto (7 dígitos).
 
     Acoplamento:
-        - login: str — entrada a validar.
-        - retorno: bool.
+       - login: str — matrícula digitada.
+       - retorno: bool — True se válido, False caso contrário.
 
     Condições de Acoplamento:
-        AE: login string (pode estar vazia).
-        AS: True se login possui exatamente 7 dígitos numéricos, False caso
-            contrário.
+       AE: login string (possivelmente vazia).
+       AS: retorna True se len(login)==7 e login.isdigit().
 
     Descrição:
-        len(login)==7 e login.isdigit().
+       1) Checa comprimento e composição numérica.
 
     Hipóteses:
-        - Matrícula definida pela instituição em 7 dígitos.
+       - Matrícula institucional sempre tem 7 dígitos numéricos.
+
+    Restrições:
+       - Nenhuma.
     """
-def validaLogin(login):
-    if len(login) == 7 and login.isdigit():
-        return True
-    return False
+def validaLogin(login: str) -> bool:
+    """Retorna True se matrícula tem 7 dígitos numéricos."""
+    return len(login) == 7 and login.isdigit()
 
 """
     Nome: loginExiste(login)
 
     Objetivo:
-        Verificar duplicidade de login em `usuarios`.
+       - Detectar duplicidade de login na lista global `usuarios`.
 
     Acoplamento:
-        - login: str.
-        - retorno: bool.
+       - login: str — identificador a verificar.
+       - retorno: bool — True se duplicado, False se único.
+
+    Condições de Acoplamento:
+       AE: lista `usuarios` pode estar vazia.
+       AS: percorre `usuarios` sem alterá-la.
 
     Descrição:
-        Percorre lista global `usuarios` e compara atributo .login.
+       1) Itera sobre `usuarios` comparando u["login"] com login.
+
+    Hipóteses:
+       - `usuarios` contém somente dicionários no formato estabelecido.
+
+    Restrições:
+       - Custo O(n) onde n = len(usuarios).
     """
-def loginExiste(login):
-    for user in usuarios:
-        if user.login == login:
-            return True
-    return False
+def loginExiste(login: str) -> bool:
+    """Verifica duplicidade em `usuarios`."""
+    return any(u["login"] == login for u in usuarios)
 
 """
     Nome: cpfConvidadoValido(cpf)
 
     Objetivo:
-        Confirmar se o CPF consta na lista diária de convidados.
+       - Verificar se um CPF consta na lista diária de convidados.
 
     Acoplamento:
-        - cpf: str (11 dígitos).
-        - retorno: bool.
+       - cpf: str — CPF de 11 dígitos.
+       - retorno: bool.
+
+    Condições de Acoplamento:
+       AE: cpf string de 11 dígitos.
+       AS: percorre `convidados` sem modificá-lo.
 
     Descrição:
-        Busca em lista global `convidados` (objetos Usuario, tipo 2).
+       1) Procura cpf em convidado["login"] para cada item da lista.
+
+    Hipóteses:
+       - `convidados` contém apenas usuários de tipo 2.
+
+    Restrições:
+       - Tempo O(m) onde m = len(convidados).
     """
-def cpfConvidadoValido(cpf):
-    for convidado in convidados:
-        if convidado.login == cpf:
-            return True
-    return False
+def cpfConvidadoValido(cpf: str) -> bool:
+    """Checa se CPF está na lista diária de convidados."""
+    return any(c["login"] == cpf for c in convidados)
+
+"""
+    Nome: buscarUsuario(login)
+
+    Objetivo:
+       - Retornar o registro de usuário cujo login corresponde ao parâmetro.
+
+    Acoplamento:
+       - login: str.
+       - retorno: dict | None.
+
+    Condições de Acoplamento:
+       AE: lista `usuarios` inicializada.
+       AS: não altera listas globais.
+
+    Descrição:
+       1) Itera sobre `usuarios`; devolve primeiro match ou None.
+
+    Hipóteses:
+       - Logins são únicos em `usuarios`.
+
+    Restrições:
+       - Busca linear.
+    """
+def buscarUsuario(login: str):
+    """Retorna dicionário-usuário ou None."""
+    return next((u for u in usuarios if u["login"] == login), None)
 
 """
     Nome: criaInterno()
 
     Objetivo:
-        Cadastrar usuário interno (tipo 1) com validação de matrícula
-        exclusiva e senha não vazia.
+       - Registrar usuário interno (tipo 1) após validações.
 
-    Fluxo resumido:
-        • Solicita matrícula até válida/única ou "0" para cancelar.
-        • Solicita senha (não vazia).
-        • Adiciona objeto Usuario(login, senha, 1) à lista global `usuarios`.
+    Acoplamento:
+       - listas globais `usuarios`.
+       - input()/print() para interação CLI.
+       - retorno: None (efeito colateral: adiciona usuário).
+
+    Condições de Acoplamento:
+       AE: usuário interage pelo terminal.
+       AS: Em sucesso, novo registro é inserido em `usuarios`.
+
+    Descrição:
+       1) Solicita matrícula até ser válida, única ou "0" para cancelar.
+       2) Solicita senha não vazia.
+       3) Insere dicionário {"login":..., "senha":..., "tipo":1} em `usuarios`.
+
+    Hipóteses:
+       - O ambiente de execução suporta I/O de console.
+
+    Restrições:
+       - Loop bloqueante até entrada aceitável ou cancelamento.
     """
-def criaInterno():
+def criaInterno() -> None:
     while True:
         login = input("Digite o login (matrícula) ou 0 para voltar: ").strip()
         if login == "0":
-            return # cancelamento
-
+            return
         if not validaLogin(login):
             print("❌ Matrícula deve ter exatamente 7 dígitos numéricos.")
-            continue 
-
+            continue
         if loginExiste(login):
             print("❌ Matrícula já cadastrada. Use a opção 1) Login.")
             continue
-
-        break # passou nas duas validações
+        break
 
     senha = input("Crie sua senha: ").strip()
     if not senha:
         print("❌ Senha não pode ser vazia.")
         return
 
-    usuarios.append(Usuario(login, senha, 1))
+    usuarios.append(novo_usuario(login, senha, 1))
     print("✅ Usuário interno criado com sucesso.")
 
 """
     Nome: criaConvidado()
 
     Objetivo:
-        Registrar convidado (tipo 2) de uso único, validando CPF, lista diária
-        e inexistência prévia.
+       - Registrar convidado (tipo 2) de uso único.
 
-    Fluxo resumido:
-        1) Ler CPF (ou "0" para cancelar) e verificar:
-           • 11 dígitos numéricos
-           • constar em `convidados` do dia (cpfConvidadoValido)
-           • não estar cadastrado (ou explicar situação caso esteja)
-        2) Ler senha não vazia.
-        3) Criar Usuario(cpf, senha, 2) e adicionar a `usuarios` (+`convidados`).
+    Acoplamento:
+       - listas globais `usuarios`, `convidados`.
+       - input()/print() para interação.
 
-    Observação:
-        Se CPF já for convidado ➜ orienta a usar credenciais enviadas.
-        Se CPF pertencer a usuário interno ➜ pede para fazer login.
+    Condições de Acoplamento:
+       AE: cpf string digitada pelo usuário.
+       AS: adiciona novo convidado às listas ao final do fluxo.
+
+    Descrição:
+       1) Valida CPF (11 dígitos) e se está autorizado.
+       2) Verifica duplicidade (interno ou já convidado).
+       3) Solicita senha e cria registro tipo 2.
+
+    Hipóteses:
+       - Lista diária de convidados já populada em `convidados`.
+
+    Restrições:
+       - Loop bloqueante; cancela com "0".
     """
-def criaConvidado():
+def criaConvidado() -> None:
     while True:
         cpf = input("Digite o CPF (11 dígitos) ou 0 para voltar: ").strip()
         if cpf == "0":
-            return # cancelamento
-
+            return
         if len(cpf) != 11 or not cpf.isdigit():
             print("❌ CPF deve ter 11 dígitos numéricos.")
             continue
-
         if not cpfConvidadoValido(cpf):
             print("❌ CPF não está na lista de convidados para hoje.")
             continue
 
         existente = buscarUsuario(cpf)
         if existente:
-            if existente.tipo == 2: # já é convidado
-                print("ℹ️  Este CPF já recebeu um acesso de uso único.")
-                print("    Verifique seu e-mail: o login e a senha já foram enviados.")
-            else: # é usuário permanente
+            if existente["tipo"] == 2:
+                print("ℹ️  Este CPF já recebeu acesso de uso único (veja seu e-mail).")
+            else:
                 print("❌ CPF pertence a usuário interno. Use a opção 1) Login.")
-            return # em ambos os casos não cria de novo
-        break # CPF autorizado e não usado ainda
+            return
+        break
 
     senha = input("Crie sua senha: ").strip()
     if not senha:
         print("❌ Senha não pode ser vazia.")
         return
 
-    usuarios.append(Usuario(cpf, senha, 2))
+    novo = novo_usuario(cpf, senha, 2)
+    usuarios.append(novo)
+    convidados.append(novo)
     print("✅ Usuário convidado criado com sucesso.")
 
 """
     Nome: carregarUsuarios(caminho, tipo_padrao=None)
 
     Objetivo:
-        Popular listas globais `usuarios` e `convidados` a partir de um CSV.
+       - Popular `usuarios` (e `convidados`) a partir de arquivo CSV.
 
     Acoplamento:
-        - caminho: str — arquivo CSV separado por vírgula.
-        - tipo_padrao: int|None — se linha não contiver coluna tipo, usar este
-          valor (útil para guests.csv).
+       - caminho: str — arquivo CSV (login,senha,tipo).
+       - tipo_padrao: int|None — valor adotado se coluna tipo ausente.
 
-    Formato esperado:
-        login,senha,tipo   (tipo opcional se `tipo_padrao` fornecido)
+    Condições de Acoplamento:
+       AE: arquivo pode não existir (tratado).
+       AS: listas globais atualizadas com novos registros.
 
     Descrição:
-        Para cada linha válida cria objeto Usuario e adiciona às listas.
+       1) Abrir CSV; iterar linhas válidas.  
+       2) Aplicar `tipo_padrao` quando necessário.  
+       3) Criar dict via novo_usuario() e inserir-se na(s) lista(s).
+
+    Hipóteses:
+       - Arquivo usa vírgula como separador e UTF-8.
+
+    Restrições:
+       - Ignora linhas malformadas ou vazias.
     """
-def carregarUsuarios(caminho, tipo_padrao=None):
+def carregarUsuarios(caminho: str, tipo_padrao: int | None = None) -> None:
     try:
         with open(caminho, newline='', encoding="utf-8") as f:
-            reader = csv.reader(f, delimiter=',')
-            for row in reader:
+            for row in csv.reader(f, delimiter=','):
                 if not row:
                     continue
-                login = row[0].strip() if len(row) > 0 else ""
+                login = row[0].strip()
                 senha = row[1].strip() if len(row) > 1 else ""
                 try:
                     tipo = int(row[2]) if len(row) > 2 else tipo_padrao
                 except ValueError:
                     tipo = tipo_padrao
-
                 if login and senha and tipo is not None:
-                    u = Usuario(login, senha, tipo)
+                    u = novo_usuario(login, senha, tipo)
                     if tipo == 2:
                         convidados.append(u)
                     usuarios.append(u)
@@ -214,49 +276,44 @@ def carregarUsuarios(caminho, tipo_padrao=None):
     Nome: salvarUsuarios(caminho_usuarios, caminho_convidados)
 
     Objetivo:
-        Persistir listas globais em dois CSVs distintos (usuários permanentes e
-        convidados).
+       - Persistir dados em dois CSVs: permanentes e convidados.
+
+    Acoplamento:
+       - caminhos dos arquivos destino.
+
+    Condições de Acoplamento:
+       AE: diretório com permissão de escrita.
+       AS: arquivos sobrescritos com conteúdo atualizado.
 
     Descrição:
-        1) Filtra lista `usuarios` removendo objetos presentes em `convidados`.
-        2) Grava CSV de permanentes e CSV de convidados (login,senha,tipo).
+       1) Filtra `usuarios` retirando aqueles presentes em `convidados`.  
+       2) Escreve permanentes no primeiro CSV.  
+       3) Escreve `convidados` no segundo CSV.
+
+    Restrições:
+       - Sobrescreve arquivos sem merge incremental.
     """
-def salvarUsuarios(caminho_usuarios, caminho_convidados):
-    somente_usuarios = [u for u in usuarios if u not in convidados]
+def salvarUsuarios(caminho_usuarios: str, caminho_convidados: str) -> None:
+    permanentes = [u for u in usuarios if u not in convidados]
 
     with open(caminho_usuarios, "w", newline='', encoding="utf-8") as f:
-        writer = csv.writer(f, delimiter=',')
-        for u in somente_usuarios:
-            writer.writerow([u.login, u.senha, u.tipo])
+        w = csv.writer(f, delimiter=',')
+        for u in permanentes:
+            w.writerow([u["login"], u["senha"], u["tipo"]])
 
     with open(caminho_convidados, "w", newline='', encoding="utf-8") as f:
-        writer = csv.writer(f, delimiter=',')
+        w = csv.writer(f, delimiter=',')
         for u in convidados:
-            writer.writerow([u.login, u.senha, u.tipo])
+            w.writerow([u["login"], u["senha"], u["tipo"]])
 
 """
-    Nome: listarUsuarios()
+    Nome: autentica(login, senha)
 
     Objetivo:
-        Devolver *shallow copy* da lista de usuários para uso externo.
-
-    Retorno:
-        list[Usuario].
+        Validar credenciais usando a lista interna, sem expô-la.
     """
-def listarUsuarios():
-    return usuarios[:]
-
-"""
-    Nome: buscarUsuario(login)
-
-    Objetivo:
-        Encontrar e retornar o objeto Usuario cujo .login == login.
-
-    Retorno:
-        Usuario | None.
-    """
-def buscarUsuario(login):
+def autentica(login: str, senha: str):
     for u in usuarios:
-        if u.login == login:
+        if u["login"] == login and u["senha"] == senha:
             return u
     return None
