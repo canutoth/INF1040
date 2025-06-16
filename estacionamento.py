@@ -26,8 +26,6 @@ Hipóteses:
     - O diretório de execução possui permissão de leitura/escrita.
 
 """
-
-
 class Estacionamento:
     def __init__(self, nome, arquivo_vagas):
         self.nome = nome
@@ -147,7 +145,6 @@ Descrição:
 Hipóteses:
     - Os objetos possuem método vagas_livres funcional.
 """
-
 def ListarEstacionamentos(estacionamentos):
     print("\nEstacionamentos disponíveis:")
     for idx, est in enumerate(estacionamentos, 1):

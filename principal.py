@@ -322,6 +322,7 @@ def AlocarVaga():
 
     est = _selecionar_estacionamento()
     if not est:
+        print("Nenhum estacionamento selecionado para alocar vaga")
         return
 
     vaga_disp = est_mod.getVagaDisponivel(est)
@@ -369,6 +370,7 @@ def LiberarVaga():
 
     est = _selecionar_estacionamento()
     if not est:
+        print("Nenhum estacionamento selecionado para liberar vaga")
         return
 
     try:
@@ -447,9 +449,10 @@ def AtualizarEstado(est):
         return
 
     # há vaga livre – verificar fila
-    prox = fila_mod.consultarPosicaoNaFila(FILA, None)  
-    if prox != -1:
-        vaga_mod.OcuparVaga(vaga_disp, est)
+    prox = fila_mod.retornaPrimeiro(FILA)  
+    if prox != None:
+        #TODO: vaga_mod.OcuparVaga(vaga_disp, est, prox.getLogin)
+        #TODO: criar função getLogin no módulo usuário
         fila_mod.removerDaFila(FILA, prox)
         print(f"🔔 Usuário {prox} foi chamado para ocupar a vaga {vaga_disp}.")
 
@@ -520,8 +523,8 @@ def EncerrarSistema():
     """Grava CSVs atualizados e encerra o programa."""
     # Desacopla convidados antes de salvar
     lista_somente_usuarios = [u for u in usuario.usuarios if u not in usuario.convidados]
-    _salvar_csv("usuarios.csv", lista_somente_usuarios)
-    _salvar_csv("convidados.csv", usuario.convidados)
+    _salvar_csv("users.csv", lista_somente_usuarios)
+    _salvar_csv("guests.csv", usuario.convidados)
     print("✔️  Dados salvos. Até logo!")
     sys.exit(0)
 
