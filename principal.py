@@ -4,8 +4,8 @@
 # -----------------------------------------------------------------------------
 import csv
 import sys
-import usuario
-import login
+import usuario as usuario_mod
+import login as login_mod
 import fila        as fila_mod
 import estacionamento as est_mod
 import vagas        as vaga_mod
@@ -61,9 +61,9 @@ def IniciarSistema():
     global FILA, ESTACIONAMENTOS
 
     # 1. Carregar usuários e convidados
-    usuario.usuarios   = _carregar_csv("users.csv")
-    usuario.convidados = _carregar_csv("guests.csv", tipo_padrao=2)
-    usuario.usuarios.extend(usuario.convidados)
+    usuario_mod.usuarios   = _carregar_csv("users.csv")
+    usuario_mod.convidados = _carregar_csv("guests.csv", tipo_padrao=2)
+    usuario_mod.usuarios.extend(usuario_mod.convidados)
 
     # 2. Fila
     FILA = fila_mod.inicializarFila()
@@ -110,6 +110,8 @@ def ExibirMenuPrincipal():
     while True:
         print("\n======  MENU PRINCIPAL  ======")
         print("1) Login")
+
+        #TODO: primeiro mostra o Login, depois mostra o restante do menu
         print("2) Alocar vaga")
         print("3) Liberar vaga")
         print("4) Exibir resumo")
@@ -155,7 +157,7 @@ def AutenticarUsuario():
     login_inp = input("Login › ").strip()
     senha_inp = input("Senha › ").strip()
 
-    if login.autentica(login_inp, senha_inp, usuario.usuarios):
+    if login_mod.autentica(login_inp, senha_inp, usuario_mod.usuarios):
         USUARIO_ATUAL = login_inp
         print(f"✅ Bem-vindo(a), {USUARIO_ATUAL}!")
     else:
@@ -244,6 +246,11 @@ def LiberarVaga():
     if USUARIO_ATUAL is None:
         TratarErros("NAO_AUTENTICADO")
         return
+    
+   #TODO: login = usuario.getLogin()
+    #TODO: PENSAR: for cada estacionamento, chamar getVagaOcupada(login), se achar, retorna em vaga, se não, vazio
+    #TODO: se tem vaga, vaga = est_mod.getVagaOcupada(login)
+      #TODO: est_mod.liberaVaga(vaga)
 
     est = _selecionar_estacionamento()
     if not est:
@@ -357,9 +364,7 @@ def AtualizarEstado(est):
     """
 def ExibirResumo():
     print("\n=======  RESUMO DO SISTEMA  =======")
-    for est in ESTACIONAMENTOS:
-        livres = est_mod.BuscarVagasDisponiveis(est)
-        print(f"{est.nome}: {livres}/{est.total_vagas} vagas livres")
+    est_mod.ListarEstacionamentos(ESTACIONAMENTOS)
 
     tamanho_fila = FILA.tamanho if FILA else 0
     print(f"Usuários na fila: {tamanho_fila}")
@@ -394,9 +399,9 @@ def ExibirResumo():
        - Não retorna (termina execução do Python).
     """
 def EncerrarSistema():
-    lista_somente_usuarios = [u for u in usuario.usuarios if u not in usuario.convidados]
+    lista_somente_usuarios = [u for u in usuario_mod.usuarios if u not in usuario_mod.convidados]
     _salvar_csv("users.csv", lista_somente_usuarios)
-    _salvar_csv("guests.csv", usuario.convidados)
+    _salvar_csv("guests.csv", usuario_mod.convidados)
     print("✔️  Dados salvos. Até logo!")
     sys.exit(0)
 
@@ -475,7 +480,9 @@ def _carregar_csv(caminho, tipo_padrao=None):
                     tipo = tipo_padrao  # ignora erro de conversão e usa padrão
 
                 if login and senha and tipo is not None:
-                    dados.append((login, senha, tipo))
+                    #TODO: isso rompe com o encapsulamento?
+                    usuario_mod.criaInterno(login, senha)
+                    dados.append(usuario)
     except FileNotFoundError:
         pass
     return dados
@@ -506,6 +513,7 @@ def _carregar_csv(caminho, tipo_padrao=None):
        - Sobrescreve totalmente o arquivo; não há append incremental.
     """
 def _salvar_csv(caminho, dados):
+    #TODO: pensar em nova forma de atualizar, sem romper com o encapsulamento, agora que usuarios é lista de Usuario
     with open(caminho, "w", newline='', encoding="utf-8") as f:
         writer = csv.writer(f, delimiter=',')
         writer.writerows(dados)

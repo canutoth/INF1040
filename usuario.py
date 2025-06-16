@@ -8,6 +8,7 @@ class Usuario:
         self.senha = senha
         self.tipo = tipo
 
+    #TODO: confirmar se pode ser aqui, ou se tem que ser fora da classe
     def getLogin(self):
         return self.login
     
@@ -69,6 +70,7 @@ Restrições:
    - Matrícula fixa em 8 dígitos numéricas; sem hífens ou pontos.
 """
 
+#TODO: alterar .csv de users e guests pra ter menos coisas e passar a usar essas funções pra criar e mostrar a persistência de dados pedida
 def criaInterno(login, senha):
     # PASSO 1: validar formato da matrícula
     while not validaLogin(login):
@@ -89,7 +91,8 @@ def criaInterno(login, senha):
             return
 
     # PASSO 3: registrar usuário interno
-    usuarios.append((login, senha, 1))
+    usuario = Usuario(login, senha, 1)
+    usuarios.append(usuario)
     # AS: usuarios atualizado com novo registro (login, senha, tipo=1)
 
 """
@@ -142,5 +145,6 @@ def criaConvidado(cpf, senha):
             return
 
     # PASSO 3: registrar usuário convidado
-    usuarios.append((cpf, senha, 2))
+    usuario = Usuario(cpf, senha, 2)
+    usuarios.append(usuario)
     # AS: usuarios atualizado com novo registro (cpf, senha, tipo=2)

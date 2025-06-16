@@ -54,7 +54,7 @@ class Estacionamento:
         - O arquivo CSV (se existir) contém linhas no formato esperado (int, str).
         - O diretório onde o arquivo será criado ou lido possui permissão de leitura e escrita.
     """
-
+    #TODO: não pode abrir .csv aqui, tem que criar uma variável que vai ser populada pelo principal.py
     def _carregar_vagas(self):
         vagas = []
         try:
@@ -72,6 +72,7 @@ class Estacionamento:
             self.salvar_vagas()
         return vagas
 
+    #TODO: não pode abrir .csv aqui, tem que criar uma variável que vai ser populada pelo principal.py
     """Nome: salvar_vagas()
 
     Objetivo: persistir o estado atual das vagas no arquivo CSV.
@@ -125,6 +126,11 @@ class Estacionamento:
             if status == "0":
                 return id_vaga
         return -1
+    
+    #TODO: funções de acesso para: ALOCAR, LIBERAR e GET(vaga ocupada pelo usuario atual)
+
+#TODO: criar função de criar estacionamento (ex. inicializaFila, só q p est)
+#TODO: criar função de acesso que recebe o que vem csv e crie uma lista de vagas pra todo estacionamento
 
 """
 Nome: ListarEstacionamentos(estacionamentos)
@@ -150,6 +156,7 @@ def ListarEstacionamentos(estacionamentos):
     for idx, est in enumerate(estacionamentos, 1):
         print(f"{idx}. {est.nome} – Vagas livres: {est.vagas_livres()}")
 
+#TODO: isso é necessário? acho q pode ser uma função interna da classe Estacionamento
 """
 Nome: BuscarVagasDisponiveis(est)
 
