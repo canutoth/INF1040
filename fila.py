@@ -1,70 +1,55 @@
 """
-Nome: inicializarFila()
+    Nome: inicializarFila()
 
-Objetivo: 
-    Aloca e retorna uma nova estrutura de Fila inicializada.
+    Objetivo:
+        Criar e devolver a estrutura de dados que representará a fila.
 
-Acoplamento:
-    - Retorno: list — lista Python vazia para representar a fila.
+    Acoplamento:
+        - retorno: list — lista Python vazia.
 
-Condições de Acoplamento:
-    AE: Função chamada sem parâmetros.
-    AS: Retorna uma lista vazia válida para representar o estado inicial da fila.
+    Condições de Acoplamento:
+        AE: chamada sem parâmetros.
+        AS: devolve lista vazia, pronta para uso como fila.
 
-Descrição:
-    1) Criar nova lista vazia.
-    2) Retornar a lista criada.
+    Descrição:
+        1) Instancia lista []. 
+        2) Retorna a lista.
 
-Hipóteses:
-    - A função é chamada uma vez no início do sistema.
-    - Há memória suficiente para alocar a estrutura.
+    Hipóteses:
+        - Chamada única na inicialização do sistema.
 
-Restrições:
-    - Deve ser chamada apenas uma vez por sessão do sistema.
+    Restrições:
+        - Não persiste em disco; vive apenas em memória.
 """
-
-
 def inicializarFila():
     # PASSO 1: criar nova lista vazia
     fila = []
     # AS: fila inicializada como lista vazia
     return fila
 
-
 """
-Nome: consultarPosicaoNaFila(fila, id_usuario)
+    Nome: consultarPosicaoNaFila(fila, id_usuario)
 
-Objetivo:
-    Encontrar a posição de um usuário específico na fila de espera.
+    Objetivo:
+        Retornar a posição (base 1) do usuário na fila ou –1 se não estiver.
 
-Acoplamento:
-    - fila: list — lista Python representando a fila a ser consultada.
-    - id_usuario: str — identificador único do usuário a ser procurado.
-    - Retorno: int — posição do usuário (1, 2, 3...) ou -1 se não encontrado.
+    Acoplamento:
+        - fila: list[Usuario] — fila vigente.
+        - id_usuario: str     — login a localizar.
+        - retorno: int        — posição (1,2,3,…) ou –1.
 
-Condições de Acoplamento:
-    AE: fila deve ser uma lista válida.
-    AE: id_usuario deve ser string não vazia.
-    AS: Retorna posição ordinal (base 1) se usuário encontrado.
-    AS: Retorna -1 se usuário não está na fila.
+    Condições de Acoplamento:
+        AE: fila é lista válida.
+        AE: id_usuario é string não vazia.
+        AS: devolve posição correta ou –1 se ausente.
 
-Descrição:
-    1) Receber fila e id_usuario.
-    2) Percorrer a lista do início ao fim.
-    3) Para cada usuário, comparar usuario.getLogin() com id_usuario.
-    4) Se encontrar correspondência, retornar a posição atual (índice + 1).
-    5) Se percorrer toda a fila sem encontrar, retornar -1.
+    Descrição:
+        Itera enumerate(fila); compara usuario.login com id_usuario; ao
+        encontrar, retorna i + 1. Se varreu toda lista → –1.
 
-Hipóteses:
-    - O usuário é uma instância válida da classe Usuario com método getLogin().
-    - O campo login do usuário é único e está preenchido.
-    - A lista está íntegra.
-
-Restrições:
-    - Busca sequencial O(n) onde n é o tamanho da fila.
+    Hipóteses:
+        - Cada objeto da fila expõe atributo .login.
 """
-
-
 def consultarPosicaoNaFila(fila, id_usuario):
     # PASSO 1: verificar se fila existe e não está vazia
     if not fila:
@@ -80,43 +65,29 @@ def consultarPosicaoNaFila(fila, id_usuario):
     # PASSO 4: usuário não encontrado após percorrer toda a fila
     return -1
 
-
 """
-Nome: adicionarNaFila(fila, usuario)
+    Nome: adicionarNaFila(fila, usuario)
 
-Objetivo:
-    Inserir um usuário no final da fila de espera, evitando duplicatas e mantendo ordenação por prioridade.
+    Objetivo:
+        Inserir `usuario` se ainda não estiver na fila.
 
-Acoplamento:
-    - fila: list — lista Python representando a fila onde inserir o usuário.
-    - usuario: Usuario — objeto da classe Usuario representando o usuário.
-    - Retorno: int — 0 se sucesso, -1 se usuário já está na fila.
+    Acoplamento:
+        - fila: list[Usuario].
+        - usuario: Usuario — possui atributos .login e .tipo.
+        - retorno: int — 0=sucesso, –1=já estava.
 
-Condições de Acoplamento:
-    AE: fila deve ser uma lista válida.
-    AE: usuario deve ser uma instância válida da classe Usuario com tipo em {1,2,3}.
-    AS: Se usuário não está na fila, é inserido no final e fila é reordenada.
-    AS: Após inserção, chama ordenarFilaPorPrioridade para reordenar.
-    AS: Retorna 0 em caso de sucesso.
+    Condições de Acoplamento:
+        AE: usuario.tipo ∈ {1,2,3}.
+        AS: fila recebe o usuário no final e é reordenada por prioridade.
 
-Descrição:
-    1) Receber fila e usuario.
-    2) Verificar se usuário já está na fila usando consultarPosicaoNaFila.
-    3) Se já existe, retornar -1.
-    4) Adicionar usuário no final da lista.
-    5) Chamar ordenarFilaPorPrioridade.
-    6) Retornar 0.
+    Descrição:
+        1) Se usuario.login já presente → –1.
+        2) append(usuario) e chamar ordenarFilaPorPrioridade().
+        3) Retornar 0.
 
-Hipóteses:
-    - O usuário é uma instância válida da classe Usuario com métodos getLogin() e getTipo().
-    - O usuário possui prioridade definida pelo tipo (1=INTERNO, 2=CONVIDADO, 3=EXTERNO).
-    - A função ordenarFilaPorPrioridade está implementada corretamente.
-
-Restrições:
-    - Não permite usuários duplicados na fila.
+    Hipóteses:
+        - Prioridade: 1 < 2 < 3 (menor valor = maior prioridade).
 """
-
-
 def adicionarNaFila(fila, usuario):
     # PASSO 1: verificar se usuário já está na fila
     if consultarPosicaoNaFila(fila, usuario.login) != -1:
@@ -132,40 +103,27 @@ def adicionarNaFila(fila, usuario):
     # AS: usuário adicionado com sucesso
     return 0
 
-
 """
-Nome: removerDaFila(fila, id_usuario)
+    Nome: removerDaFila(fila, id_usuario)
 
-Objetivo:
-    Remover um usuário específico da fila de espera.
+    Objetivo:
+        Retirar da fila o usuário cujo login == id_usuario.
 
-Acoplamento:
-    - fila: list — lista Python representando a fila de onde remover o usuário.
-    - id_usuario: str — identificador do usuário a ser removido.
-    - Retorno: int — 0 se sucesso, -1 se usuário não encontrado.
+    Acoplamento:
+        - fila: list[Usuario].
+        - id_usuario: str.
+        - retorno: int — 0=removido, –1=não achou.
 
-Condições de Acoplamento:
-    AE: fila deve ser uma lista válida.
-    AE: id_usuario deve ser string não vazia.
-    AS: Se usuário encontrado, é removido da lista.
-    AS: Retorna 0 em caso de sucesso, -1 se não encontrado.
+    Condições de Acoplamento:
+        AE: fila pode estar vazia.
+        AS: se achar, deleta elemento e devolve 0.
 
-Descrição:
-    1) Receber fila e id_usuario.
-    2) Percorrer a lista procurando o usuário.
-    3) Se encontrado, remover da lista usando del ou remove.
-    4) Retornar 0 se sucesso, -1 se não encontrado.
+    Descrição:
+        Percorre lista; ao encontrar .login igual, faz del fila[i].
 
-Hipóteses:
-    - O usuário é uma instância válida da classe Usuario com método getLogin().
-    - A lista está íntegra.
-    - O usuário pode estar em qualquer posição da lista.
-
-Restrições:
-    - Operação O(n) devido à busca sequencial.
+    Hipóteses:
+        - login é chave única na fila.
 """
-
-
 def removerDaFila(fila, id_usuario):
     # PASSO 1: verificar se fila existe e não está vazia
     if not fila:
@@ -182,39 +140,28 @@ def removerDaFila(fila, id_usuario):
     # PASSO 4: usuário não encontrado
     return -1
 
-
 """
-Nome: ordenarFilaPorPrioridade(fila)
+    Nome: ordenarFilaPorPrioridade(fila)
 
-Objetivo:
-    Reordenar a fila segundo prioridade: menor valor de usuario.tipo primeiro, mantendo ordem de chegada para prioridades iguais.
+    Objetivo:
+        Ordenar in-place pela prioridade (usuario.tipo):
+        1 → primeiro, depois 2, depois 3; estabilidade preservada.
 
-Acoplamento:
-    - fila: list — lista Python representando a fila a ser ordenada.
-    - Retorno: None — função modifica a lista in-place.
+    Acoplamento:
+        - fila: list[Usuario].
+        - retorno: None (efeito colateral).
 
-Condições de Acoplamento:
-    AE: fila deve ser uma lista válida.
-    AS: Lista reordenada com usuários de menor tipo (maior prioridade) primeiro.
-    AS: Para tipos iguais, mantém ordem de chegada original (estável).
-    AS: Lista permanece íntegra após ordenação.
+    Condições de Acoplamento:
+        AE: fila inicializada.
+        AS: ordem reposicionada conforme chave .tipo.
 
-Descrição:
-    1) Receber fila.
-    2) Se fila vazia ou com 1 elemento, retornar sem alterações.
-    3) Ordenar lista por tipo (prioridade) de forma estável usando sort().
-    4) Lista é modificada in-place.
+    Descrição:
+        Usa list.sort(key=lambda u: u.tipo) — ordenação estável do Python garante
+        manter ordem de chegada dentro de mesma prioridade.
 
-Hipóteses:
-    - O usuário é uma instância válida da classe Usuario com método getTipo().
-    - Tipo 1 (INTERNO) tem maior prioridade que tipo 2 (CONVIDADO) que tem maior que tipo 3 (EXTERNO).
-    - A ordenação deve ser estável (preserva ordem original para elementos iguais).
-
-Restrições:
-    - Usa ordenação estável para preservar ordem de chegada em caso de empate.
+    Hipóteses:
+        - .tipo é int comparável.
 """
-
-
 def ordenarFilaPorPrioridade(fila):
     # PASSO 1: verificar se há elementos para ordenar
     if not fila or len(fila) <= 1:
@@ -228,40 +175,26 @@ def ordenarFilaPorPrioridade(fila):
 
     # AS: fila reordenada por prioridade mantendo estabilidade
 
-
 """
-Nome: retornaPrimeiro(fila)
+    Nome: retornaPrimeiro(fila)
 
-Objetivo:
-    Retornar o primeiro item da fila sem removê-lo, para consulta antes de operações de remoção.
+    Objetivo:
+        Obter o primeiro elemento sem removê-lo.
 
-Acoplamento:
-    - fila: list — lista Python representando a fila a ser consultada.
-    - Retorno: Object — objeto armazenado no primeiro elemento da fila, ou None se fila vazia.
+    Acoplamento:
+        - fila: list[Usuario].
+        - retorno: Usuario | None.
 
-Condições de Acoplamento:
-    AE: fila deve ser uma lista válida.
-    AS: Retorna o objeto armazenado no primeiro elemento se fila não vazia.
-    AS: Retorna None se fila vazia.
-    AS: Não modifica a lista.
+    Condições de Acoplamento:
+        AE: fila inicializada.
+        AS: None se vazia; caso contrário, fila[0].
 
-Descrição:
-    1) Receber fila.
-    2) Verificar se fila existe e não está vazia.
-    3) Se vazia, retornar None.
-    4) Se não vazia, retornar o primeiro elemento da lista.
+    Descrição:
+        Verifica fila; retorno direto de fila[0] se existir.
 
-Hipóteses:
-    - A lista está íntegra.
-    - O primeiro elemento contém um objeto válido.
-
-Restrições:
-    - Operação O(1) - acesso direto ao primeiro elemento.
-    - Não modifica a fila, apenas consulta.
-    - Agnóstica ao tipo de objeto armazenado.
+    Hipóteses:
+        - Lista preserva ordem FIFO.
 """
-
-
 def retornaPrimeiro(fila):
     # PASSO 1: verificar se fila existe e não está vazia
     if not fila:

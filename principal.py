@@ -24,6 +24,36 @@ ERROS = {
 }
 
 # ------------------------------ rotinas chave -------------------------------
+"""
+    Nome: IniciarSistema()
+
+    Objetivo:
+        Carregar usuários, inicializar fila e estacionamentos antes de qualquer
+        interação do usuário.
+
+    Acoplamento:
+        - arquivos 'users.csv', 'guests.csv', 'estacionamentos.csv'.
+        - módulos: usuario_mod, fila_mod, est_mod.
+        - retorna: None (altera variáveis globais).
+
+    Condições de Acoplamento:
+        AE: arquivos CSV podem existir ou não; funções de leitura tratam falta.
+        AS: FILA recebe lista vazia; ESTACIONAMENTOS é populado; usuários,
+            convidados e fila ficam em memória prontos para uso.
+
+    Descrição:
+        1) Carrega usuários recorrentes (tipo 1) e convidados (tipo 2).
+        2) Cria FILA vazia via fila_mod.inicializarFila().
+        3) Constrói objetos Estacionamento a partir do CSV de estado.
+        4) Exibe mensagem de sucesso.
+
+    Hipóteses:
+        - Funções usuario_mod.carregarUsuarios e est_mod.criarEstacionamentosDeCSV
+          estão implementadas corretamente.
+
+    Restrições:
+        - Deve ser chamada uma única vez, logo no início do programa.
+"""
 def IniciarSistema():
     global FILA, ESTACIONAMENTOS
 
@@ -39,6 +69,34 @@ def IniciarSistema():
 
     print("✅ Sistema iniciado com sucesso.")
 
+"""
+    Nome: MenuInicial()
+
+    Objetivo:
+        Controlar a etapa de pré-login: autenticar usuário ou criar conta.
+
+    Acoplamento:
+        - leitura: input().
+        - módulos: AutenticarUsuario, usuario_mod.criaInterno / criaConvidado.
+        - variável global USUARIO_ATUAL (pode ser setada aqui).
+
+    Condições de Acoplamento:
+        AE: IniciarSistema() já executado.
+        AS: Sai do loop somente quando USUARIO_ATUAL for definido ou o usuário
+            escolher encerrar (opção 3).
+
+    Descrição:
+        Loop até USUARIO_ATUAL deixar de ser None:  
+        1) Exibir menu (Login / Criar conta / Sair).  
+        2) Delegar ações conforme escolha.  
+        3) Em “Criar conta”, perguntar se é interna ou visitante.
+
+    Hipóteses:
+        - Criação de contas valida duplicidade e formato.
+
+    Restrições:
+        - Uso de input síncrono; sem timeout.
+"""
 def MenuInicial():
     global USUARIO_ATUAL
     while USUARIO_ATUAL is None:
@@ -71,27 +129,26 @@ def MenuInicial():
     Nome: ExibirMenuPrincipal()
 
     Objetivo:
-       - Controlar o loop de interação de alto nível com o usuário.
+        Oferecer ao usuário autenticado as operações principais:
+        alocar vaga, liberar vaga, ver resumo ou encerrar.
 
     Acoplamento:
-       - leitura: input() para selecionar opção.
-       - retorno: None — loop somente termina em EncerrarSistema().
+        - leitura: input().
+        - funções: AlocarVaga, LiberarVaga, ExibirResumo, EncerrarSistema.
 
     Condições de Acoplamento:
-       AE: IniciarSistema() já executado.
-       AS: Usuário navega entre opções 1–5, com tratamento de erro para outras.
+        AE: USUARIO_ATUAL definido.
+        AS: Mantém loop até EncerrarSistema() disparar sys.exit().
 
     Descrição:
-       1) Construir dicionário opcoes {str: função}.
-       2) Loop infinito: exibir menu textual, ler escolha.
-       3) Se escolha válida → chamar função correspondente.
-          Caso contrário → TratarErros("OPCAO_INVALIDA").
+        Constrói dicionário {opção: função}.  
+        Mostra menu, lê escolha, despacha para a rotina adequada ou exibe erro.
 
     Hipóteses:
-       - Todas funções chamadas estão importadas e operacionais.
+        - USUARIO_ATUAL continuará válido durante a sessão.
 
     Restrições:
-       - Executa indefinidamente até EncerrarSistema() chamar sys.exit().
+        - Bloco infinito; ideal para CLI interativo.
     """
 def ExibirMenuPrincipal():
     opcoes = {
@@ -118,29 +175,26 @@ def ExibirMenuPrincipal():
     Nome: AutenticarUsuario()
 
     Objetivo:
-       - Solicitar credenciais e validar acesso do usuário.
+        Solicitar credenciais e definir USUARIO_ATUAL quando válidas.
 
     Acoplamento:
-       - módulos: login.autentica(), usuario.usuarios.
-       - leitura: input() (login, senha).
-       - efeito: define variável global USUARIO_ATUAL.
+        - login_mod.autentica().
+        - usuario_mod.listarUsuarios() – lista de objetos Usuario.
+        - variável global USUARIO_ATUAL.
 
     Condições de Acoplamento:
-       AE: usuario.usuarios contém tuplas válidas.
-       AS: Se credenciais corretas → USUARIO_ATUAL recebe login.
-       AS: Se inválidas → TratarErros("AUTH_FAIL").
+        AE: lista de usuários carregada.
+        AS: USUARIO_ATUAL recebe objeto Usuario se sucesso; caso contrário
+            exibe erro apropriado.
 
     Descrição:
-       1) Ler login e senha via input().
-       2) Chamar login.autentica(login, senha, usuario.usuarios).
-       3) Se True → armazenar login, exibir mensagem de boas-vindas.
-          Senão → chamar TratarErros("AUTH_FAIL").
+        1) Ler login e senha.  
+        2) Chamar login_mod.autentica().  
+        3) Se retorno não-None → setar USUARIO_ATUAL.  
+        4) Caso contrário → TratarErros("AUTH_FAIL").
 
     Hipóteses:
-       - Função autentica retorna booleano conforme especificação.
-
-    Restrições:
-       - Nenhum.
+        - Função autentica devolve objeto ou None, não lança exceção.
     """
 def AutenticarUsuario():
     global USUARIO_ATUAL
@@ -158,31 +212,25 @@ def AutenticarUsuario():
     Nome: AlocarVaga()
 
     Objetivo:
-       - Tentar reservar uma vaga para o usuário autenticado ou inseri-lo na fila.
+        Tentar ocupar uma vaga livre para USUARIO_ATUAL ou colocá-lo na FILA.
 
     Acoplamento:
-       - leitura: variável global USUARIO_ATUAL.
-       - módulos previstos: est_mod.getVagaDisponivel(), vaga_mod.OcuparVaga(),
-         GerenciaFila().
-       - retorno: None.
+        - est_mod.selecionarEstacionamento(), est_mod.getVagaDisponivel().
+        - Estacionamento.ocuparVagaPorLogin().
+        - fila_mod.* para gerenciamento de fila.
 
     Condições de Acoplamento:
-       AE: Usuário deve estar autenticado.
-       AE: ESTACIONAMENTOS configurado; módulos est_mod/vaga_mod implementados.
-       AS: Se vaga disponível → ocupada; senão → usuário entra na fila.
+        AE: USUARIO_ATUAL != None.
+        AS: Vaga ocupada ou usuário inserido na FILA.
 
     Descrição:
-       1) Verificar autenticação; se não, erro.
-       2) Permitir escolha do estacionamento via _selecionar_estacionamento().
-       3) Chamar est_mod.getVagaDisponivel(est).
-          a. Se -1 → GerenciaFila() + mensagem SEM_VAGAS.
-          b. Caso contrário → vaga_mod.OcuparVaga() + confirmação.
+        1) Verifica autenticação.  
+        2) Permite escolha do estacionamento.  
+        3) Se getVagaDisponivel == –1 → GerenciaFila + erro “SEM_VAGAS”.  
+        4) Caso contrário → ocuparVagaPorLogin() e confirmar.
 
     Hipóteses:
-       - Funções de est_mod e vaga_mod seguem contrato previsto.
-
-    Restrições:
-       - Contém TODOs até implementação dos demais módulos.
+        - ocuparVagaPorLogin() devolve tupla(sucesso,id); usamos apenas efeito.
     """
 def AlocarVaga():
     if USUARIO_ATUAL is None:
@@ -208,30 +256,24 @@ def AlocarVaga():
     Nome: LiberarVaga()
 
     Objetivo:
-       - Desocupar uma vaga e disparar atualização de estado (fila).
+        Liberar a vaga ocupada por USUARIO_ATUAL (qualquer estacionamento).
 
     Acoplamento:
-       - leitura: USUARIO_ATUAL, input() para id da vaga.
-       - módulos previstos: vaga_mod.LiberarVaga(), AtualizarEstado().
+        - Estacionamento.liberarVagaDe().
+        - AtualizarEstado() para realocar fila.
 
     Condições de Acoplamento:
-       AE: Usuário precisa estar autenticado.
-       AE: ID informado deve ser numérico e existente.
-       AS: Se sucesso → vaga liberada + AtualizarEstado().
-       AS: Se falha → mensagem VAGA_NAO_ENCONTRADA.
+        AE: USUARIO_ATUAL autentica-do.
+        AS: Vaga liberada ou erro VAGA_NAO_ENCONTRADA.
 
     Descrição:
-       1) Checar autenticação.
-       2) Selecionar estacionamento.
-       3) Ler ID da vaga e chamar vaga_mod.LiberarVaga().
-       4) Resultado 0 → sucesso; else → erro.
-       5) Em sucesso → AtualizarEstado(est).
+        Itera todos os estacionamentos:  
+        • se liberarVagaDe() devolver id → imprime sucesso e chama
+          AtualizarEstado(est).  
+        • se nenhum estacionamento contiver o usuário → erro.
 
     Hipóteses:
-       - vaga_mod.LiberarVaga retorna 0 em sucesso.
-
-    Restrições:
-       - Contém TODOs pendentes.
+        - Cada usuário ocupa no máximo uma vaga.
     """
 def LiberarVaga():
     if USUARIO_ATUAL is None:
@@ -248,28 +290,25 @@ def LiberarVaga():
     TratarErros("VAGA_NAO_ENCONTRADA")
 
 """
-    Nome: GerenciaFila(usuario_login)
+    Nome: GerenciaFila(usuario)
 
     Objetivo:
-       - Garantir que o usuário esteja na fila e ordenar por prioridade.
+        Garantir que `usuario` esteja na FILA exatamente uma vez, ordenada
+        por prioridade (.tipo).
 
     Acoplamento:
-       - FILA global e funções de fila_mod.
+        - fila_mod.consultarPosicaoNaFila, adicionarNaFila, ordenarFilaPorPrioridade.
+        - variável global FILA.
 
     Condições de Acoplamento:
-       AE: FILA inicializada.
-       AS: Se usuário não presente → adicionado; fila reordenada.
+        AE: FILA inicializada.
+        AS: FILA contém usuário e está ordenada.
 
     Descrição:
-       1) Consultar posição atual via fila_mod.consultarPosicaoNaFila().
-       2) Se -1 → adicionarNaFila().
-       3) Ordenar fila por prioridade.
+        Se consultarPosicaoNaFila == –1 → adicionarNaFila(); depois reordena.
 
     Hipóteses:
-       - Prioridade definida na lógica interna de fila_mod.
-
-    Restrições:
-       - Nenhum.
+        - Prioridade: tipo 1 < 2 < 3.
     """
 def GerenciaFila(usuario):
     if fila_mod.consultarPosicaoNaFila(FILA, usuario) == -1:
@@ -280,27 +319,24 @@ def GerenciaFila(usuario):
     Nome: AtualizarEstado(est)
 
     Objetivo:
-       - Após liberação de vaga, realocar primeiro usuário da fila.
+        Após liberação de vaga, chamar o primeiro da FILA (se houver).
 
     Acoplamento:
-       - est_mod.getVagaDisponivel(), fila_mod.* e vaga_mod.OcuparVaga().
+        - est: Estacionamento onde surgiu vaga.
+        - est.getVagaDisponivel() / ocuparVagaPorLogin().
+        - fila_mod.retornaPrimeiro / removerDaFila.
 
     Condições de Acoplamento:
-       AE: est é objeto Estacionamento válido.
-       AS: Se existir vaga e fila não vazia → ocupar vaga e remover usuário.
+        AE: est válido; FILA inicializada.
+        AS: Se vaga livre e fila não vazia → ocupação + remoção da FILA.
 
     Descrição:
-       1) Obter vaga livre via est_mod.getVagaDisponivel().
-       2) Se -1 → retornar (nenhuma ação).
-       3) Obter primeiro usuário via fila_mod.consultarPosicaoNaFila() ou método próprio.
-       4) Se existir → vaga_mod.OcuparVaga() e fila_mod.removerDaFila().
-       5) Exibir notificação ao usuário atendido.
+        1) Verificar vaga livre.  
+        2) Se existir, pegar primeiro da FILA.  
+        3) Tentar ocupar; se sucesso → removerDaFila + mensagem.
 
     Hipóteses:
-       - Métodos de fila_mod e vaga_mod implementados.
-
-    Restrições:
-       - Contém TODOs pendentes.
+        - ocuparVagaPorLogin() retorna (sucesso, id).
     """
 def AtualizarEstado(est):
     vaga = est.getVagaDisponivel
@@ -319,25 +355,20 @@ def AtualizarEstado(est):
     Nome: ExibirResumo()
 
     Objetivo:
-       - Mostrar panorama do sistema: vagas, fila e usuário logado.
+        Apresentar visão geral do sistema: vagas por estacionamento, tamanho da
+        FILA e usuário autenticado.
 
     Acoplamento:
-       - ESTACIONAMENTOS, FILA, USUARIO_ATUAL e est_mod.BuscarVagasDisponiveis().
-
-    Condições de Acoplamento:
-       AE: Sistema inicializado.
-       AS: Dados impressos no console.
+        - est_mod.ListarEstacionamentos().
+        - FILA global (.tamanho) e USUARIO_ATUAL.
 
     Descrição:
-       1) Iterar sobre ESTACIONAMENTOS: obter vagas livres / total.
-       2) Exibir tamanho da FILA (FILA.tamanho).
-       3) Exibir USUARIO_ATUAL ou ausência.
-
-    Hipóteses:
-       - Objeto FILA possui atributo .tamanho.
+        1) Delegar listagem de vagas a est_mod.  
+        2) Exibir tamanho da fila.  
+        3) Mostrar login do usuário autenticado (ou “Nenhum”).
 
     Restrições:
-       - Contém TODO para cálculo de vagas livres.
+        - Apenas saída para console; não altera estado.
     """
 def ExibirResumo():
     print("\n=======  RESUMO DO SISTEMA  =======")
@@ -354,26 +385,21 @@ def ExibirResumo():
     Nome: EncerrarSistema()
 
     Objetivo:
-       - Persistir dados em CSV e finalizar a aplicação.
+        Persistir usuários, convidados e estado dos estacionamentos em CSV, e
+        então encerrar o programa.
 
     Acoplamento:
-       - _salvar_csv(), usuario.usuarios, usuario.convidados.
-
-    Condições de Acoplamento:
-       AE: Listas globais atualizadas.
-       AS: Arquivos ‘usuarios.csv’ e ‘convidados.csv’ sobrescritos.
-       AS: Processo encerrado via sys.exit(0).
+        - usuario_mod.salvarUsuarios().
+        - Estacionamento.salvarEstadoEmCSV() em loop de ESTACIONAMENTOS.
+        - sys.exit(0).
 
     Descrição:
-       1) Filtrar usuarios sem convidados.
-       2) Salvar ambos os CSVs usando _salvar_csv().
-       3) Exibir mensagem e chamar sys.exit(0).
-
-    Hipóteses:
-       - Função _salvar_csv grava corretamente.
+        1) Salvar users.csv e guests.csv via usuario_mod.  
+        2) Abrir estacionamentos.csv e gravar o snapshot de cada estacionamento.  
+        3) Imprimir confirmação e sair.
 
     Restrições:
-       - Não retorna (termina execução do Python).
+        - Chama sys.exit(), portanto não retorna.
     """
 def EncerrarSistema():
     usuario_mod.salvarUsuarios("users.csv", "guests.csv")
@@ -389,24 +415,13 @@ def EncerrarSistema():
     Nome: TratarErros(codigo)
 
     Objetivo:
-       - Exibir mensagem de erro amigável ao usuário.
+        Imprimir mensagem de erro amigável correspondente ao código.
 
     Acoplamento:
-       - ERROS: dict mapeando códigos → mensagens.
-
-    Condições de Acoplamento:
-       AE: codigo é chave existente ou não em ERROS.
-       AS: Mensagem correspondente impressa no console.
+        - ERROS: dict.
 
     Descrição:
-       1) Fazer lookup em ERROS.get(codigo, 'Erro desconhecido.').
-       2) Imprimir mensagem prefixada por símbolo ⚠️.
-
-    Hipóteses:
-       - stdout disponível.
-
-    Restrições:
-       - Função simples; não altera estado global.
+        Faz lookup em ERROS e imprime resultado (default “Erro desconhecido.”).
     """
 def TratarErros(codigo):
     print(f"⚠️  {ERROS.get(codigo, 'Erro desconhecido.')}")
