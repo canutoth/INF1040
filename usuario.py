@@ -19,7 +19,7 @@ class Usuario:
 
 # Verifica se o login (matrícula) tem exatamente 8 dígitos numéricos
 def validaLogin(login):
-    if len(login) == 8 and login.isdigit():
+    if len(login) == 7 and login.isdigit():
         return True
     return False
 
@@ -73,29 +73,29 @@ Restrições:
 """
 
 #TODO: alterar .csv de users e guests pra ter menos coisas e passar a usar essas funções pra criar e mostrar a persistência de dados pedida
-def criaInterno(login, senha):
-    # PASSO 1: validar formato da matrícula
-    while not validaLogin(login):
-        # AE: login inválido
-        print("Login inválido. Deve ter exatamente 8 dígitos numéricos.")
-        login = input("Digite o login (matrícula) ou 0 para voltar ao menu principal: ")
+def criaInterno():
+    while True:
+        login = input("Digite o login (matrícula) ou 0 para voltar: ").strip()
         if login == "0":
-            # AS: aborta sem alterar usuarios
-            return
+            return # cancelamento
 
-    # PASSO 2: verificar duplicidade de login
-    while loginExiste(login):
-        # AE: login já cadastrado
-        print("Login já existe.")
-        login = input("Digite o login (matrícula) ou 0 para voltar ao menu principal: ")
-        if login == "0":
-            # AS: aborta sem alterar usuarios
-            return
+        if not validaLogin(login):
+            print("❌ Matrícula deve ter exatamente 7 dígitos numéricos.")
+            continue 
 
-    # PASSO 3: registrar usuário interno
-    usuario = Usuario(login, senha, 1)
-    usuarios.append(usuario)
-    # AS: usuarios atualizado com novo registro (login, senha, tipo=1)
+        if loginExiste(login):
+            print("❌ Matrícula já cadastrada. Use a opção 1) Login.")
+            continue
+
+        break # passou nas duas validações
+
+    senha = input("Crie sua senha: ").strip()
+    if not senha:
+        print("❌ Senha não pode ser vazia.")
+        return
+
+    usuarios.append(Usuario(login, senha, 1))
+    print("✅ Usuário interno criado com sucesso.")
 
 """
 Nome: criaConvidado(cpf, senha)
@@ -127,43 +127,37 @@ Hipóteses:
    - A função loginExiste detecta duplicidade em usuarios.
 """
 
-def criaConvidado(cpf, senha):
-    # PASSO 1: validar CPF de convidado
-    while not cpfConvidadoValido(cpf):
-        # AE: CPF não autorizado ou formato inválido
-        print("CPF inválido ou não autorizado para convidado hoje.")
-        cpf = input("Digite o CPF (11 dígitos) ou 0 para voltar ao menu principal: ")
+def criaConvidado():
+    while True:
+        cpf = input("Digite o CPF (11 dígitos) ou 0 para voltar: ").strip()
         if cpf == "0":
-            # AS: aborta sem alterar usuarios
-            return
+            return # cancelamento
 
-    # PASSO 2: verificar duplicidade de CPF
-    while loginExiste(cpf):
-        # AE: CPF já cadastrado
-        print("CPF já existe.")
-        cpf = input("Digite o CPF (11 dígitos) ou 0 para voltar ao menu principal: ")
-        if cpf == "0":
-            # AS: aborta sem alterar usuarios
-            return
+        if len(cpf) != 11 or not cpf.isdigit():
+            print("❌ CPF deve ter 11 dígitos numéricos.")
+            continue
 
-    # PASSO 3: registrar usuário convidado
-    usuario = Usuario(cpf, senha, 2)
-    usuarios.append(usuario)
-    # AS: usuarios atualizado com novo registro (cpf, senha, tipo=2)
+        if not cpfConvidadoValido(cpf):
+            print("❌ CPF não está na lista de convidados para hoje.")
+            continue
 
-def criarInternoInterativo():
-    login = input("Digite sua matrícula (8 dígitos): ").strip()
-    if login == "0":
+        existente = buscarUsuario(cpf)
+        if existente:
+            if existente.tipo == 2: # já é convidado
+                print("ℹ️  Este CPF já recebeu um acesso de uso único.")
+                print("    Verifique seu e-mail: o login e a senha já foram enviados.")
+            else: # é usuário permanente
+                print("❌ CPF pertence a usuário interno. Use a opção 1) Login.")
+            return # em ambos os casos não cria de novo
+        break # CPF autorizado e não usado ainda
+
+    senha = input("Crie sua senha: ").strip()
+    if not senha:
+        print("❌ Senha não pode ser vazia.")
         return
-    senha = input("Digite a senha: ").strip()
-    criaInterno(login, senha)
 
-def criarConvidadoInterativo():
-    cpf = input("Digite o CPF (11 dígitos): ").strip()
-    if cpf == "0":
-        return
-    senha = input("Digite a senha enviada por email: ").strip()
-    criaConvidado(cpf, senha)
+    usuarios.append(Usuario(cpf, senha, 2))
+    print("✅ Usuário convidado criado com sucesso.")
 
 def carregarUsuarios(caminho, tipo_padrao=None):
     try:

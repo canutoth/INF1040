@@ -56,9 +56,9 @@ def MenuInicial():
             print("2) Visitante")
             tipo = input("Escolha › ").strip()
             if tipo == "1":
-                usuario_mod.criarInternoInterativo()
+                usuario_mod.criaInterno()
             elif tipo == "2":
-                usuario_mod.criarConvidadoInterativo()
+                usuario_mod.criaConvidado()
             else:
                 TratarErros("OPCAO_INVALIDA")
         elif escolha == "3":
