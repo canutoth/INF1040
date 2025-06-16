@@ -39,6 +39,34 @@ def IniciarSistema():
 
     print("✅ Sistema iniciado com sucesso.")
 
+def MenuInicial():
+    global USUARIO_ATUAL
+    while USUARIO_ATUAL is None:
+        print("\n======  BEM-VINDO(A)  ======")
+        print("1) Login")
+        print("2) Criar conta")
+        print("3) Sair")
+        escolha = input("Escolha › ").strip()
+
+        if escolha == "1":
+            AutenticarUsuario()
+        elif escolha == "2":
+            print("\nVocê deseja criar uma conta como:")
+            print("1) Aluno, Professor ou Funcionário")
+            print("2) Visitante")
+            tipo = input("Escolha › ").strip()
+            if tipo == "1":
+                usuario_mod.criarInternoInterativo()
+            elif tipo == "2":
+                usuario_mod.criarConvidadoInterativo()
+            else:
+                TratarErros("OPCAO_INVALIDA")
+        elif escolha == "3":
+            EncerrarSistema()
+        else:
+            TratarErros("OPCAO_INVALIDA")
+
+
 """
     Nome: ExibirMenuPrincipal()
 
@@ -67,22 +95,17 @@ def IniciarSistema():
     """
 def ExibirMenuPrincipal():
     opcoes = {
-        "1": AutenticarUsuario,
-        #TODO: "2": CriarUsuario,
-        "2": AlocarVaga,
-        "3": LiberarVaga,
-        "4": ExibirResumo,
-        "5": EncerrarSistema
+        "1": AlocarVaga,
+        "2": LiberarVaga,
+        "3": ExibirResumo,
+        "4": EncerrarSistema
     }
     while True:
         print("\n======  MENU PRINCIPAL  ======")
-        print("1) Login")
-
-        #TODO: primeiro mostra o Login, depois mostra o restante do menu
-        print("2) Alocar vaga")
-        print("3) Liberar vaga")
-        print("4) Exibir resumo")
-        print("5) Sair")
+        print("1) Alocar vaga")
+        print("2) Liberar vaga")
+        print("3) Exibir resumo")
+        print("4) Sair")
         escolha = input("Escolha › ").strip()
 
         acao = opcoes.get(escolha)
@@ -323,7 +346,7 @@ def ExibirResumo():
     tamanho_fila = FILA.tamanho if FILA else 0
     print(f"Usuários na fila: {tamanho_fila}")
     if USUARIO_ATUAL:
-        print(f"Usuário autenticado: {USUARIO_ATUAL}")
+        print(f"Usuário autenticado: {USUARIO_ATUAL.login}")
     else:
         print("Nenhum usuário autenticado.")
 
@@ -391,6 +414,7 @@ def TratarErros(codigo):
 # --------------------------- execução direta ---------------------------------
 if __name__ == "__main__":
     IniciarSistema()
+    MenuInicial()
     ExibirMenuPrincipal()
 
 # # ---------------------------- utilidades internas ----------------------------

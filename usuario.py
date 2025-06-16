@@ -24,16 +24,16 @@ def validaLogin(login):
     return False
 
 # Verifica se já existe um login igual em usuarios
-def loginExiste(login, usuarios):
-    for user, _, _ in usuarios:
-        if user == login:
+def loginExiste(login):
+    for user in usuarios:
+        if user.login == login:
             return True
     return False
 
 # Verifica se o CPF consta na lista de convidados do dia
-def cpfConvidadoValido(cpf, convidados):
+def cpfConvidadoValido(cpf):
     for convidado in convidados:
-        if convidado == cpf:
+        if convidado.login == cpf:
             return True
     return False
 
@@ -84,7 +84,7 @@ def criaInterno(login, senha):
             return
 
     # PASSO 2: verificar duplicidade de login
-    while loginExiste(login, usuarios):
+    while loginExiste(login):
         # AE: login já cadastrado
         print("Login já existe.")
         login = input("Digite o login (matrícula) ou 0 para voltar ao menu principal: ")
@@ -138,7 +138,7 @@ def criaConvidado(cpf, senha):
             return
 
     # PASSO 2: verificar duplicidade de CPF
-    while loginExiste(cpf, usuarios):
+    while loginExiste(cpf):
         # AE: CPF já cadastrado
         print("CPF já existe.")
         cpf = input("Digite o CPF (11 dígitos) ou 0 para voltar ao menu principal: ")
@@ -150,6 +150,20 @@ def criaConvidado(cpf, senha):
     usuario = Usuario(cpf, senha, 2)
     usuarios.append(usuario)
     # AS: usuarios atualizado com novo registro (cpf, senha, tipo=2)
+
+def criarInternoInterativo():
+    login = input("Digite sua matrícula (8 dígitos): ").strip()
+    if login == "0":
+        return
+    senha = input("Digite a senha: ").strip()
+    criaInterno(login, senha)
+
+def criarConvidadoInterativo():
+    cpf = input("Digite o CPF (11 dígitos): ").strip()
+    if cpf == "0":
+        return
+    senha = input("Digite a senha enviada por email: ").strip()
+    criaConvidado(cpf, senha)
 
 def carregarUsuarios(caminho, tipo_padrao=None):
     try:
