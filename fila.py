@@ -96,6 +96,9 @@ def adicionarNaFila(fila, usuario_obj):
         - id_usuario: str.
         - retorno: int — 0 removido, –1 não achou.
 
+    Condições de Acoplamento:
+        AE: fila lista válida; id_usuario não vazio.
+
     Descrição:
         Percorre lista; del quando getLogin(u) coincide.
     """
@@ -116,6 +119,10 @@ def removerDaFila(fila, id_usuario):
     Acoplamento:
         - fila: list[dict].
 
+    Condições de Acoplamento:
+        AE: fila lista válida.
+        AS: fila reordenada por prioridade.
+
     Descrição:
         list.sort(key=lambda u: getTipo(u)) — sort do Python é estável.
     """
@@ -128,6 +135,14 @@ def ordenarFilaPorPrioridade(fila):
 
     Objetivo:
         Obter o primeiro elemento sem removê-lo.
+
+    Acoplamento:
+        - fila: list[dict].
+        - retorno: dict | None.
+
+    Condições de Acoplamento:
+        AE: fila lista válida.
+        AS: devolve primeiro elemento ou None se vazia.
 
     Retorno:
         dict | None.
