@@ -254,7 +254,7 @@ def criaConvidado() -> None:
     Restrições:
        - Ignora linhas malformadas ou vazias.
     """
-def carregarUsuarios(caminho: str, tipo_padrao: int | None = None) -> None:
+def carregarUsuarios(caminho: str, tipo_padrao = None) -> None:
     try:
         with open(caminho, newline='', encoding="utf-8") as f:
             for row in csv.reader(f, delimiter=','):
@@ -309,41 +309,86 @@ def salvarUsuarios(caminho_usuarios: str, caminho_convidados: str) -> None:
             w.writerow([u["login"], u["senha"], u["tipo"]])
 
 """
-Nome: autentica(login, senha, lista_usuarios)
+    Nome: autentica(login, senha)
 
-Objetivo:
-    Validar as credenciais informadas e devolver o **dicionário-usuário**
-    correspondente, permitindo ao chamador acessar login, senha e tipo.
+    Objetivo:
+        Validar as credenciais informadas e retornar o usuário ou código de erro.
 
-Acoplamento:
-    - login: str — identificador digitado pelo usuário.
-    - senha: str — senha digitada.
-    - lista_usuarios: list[dict] — cada dict tem chaves
-        'login', 'senha', 'tipo' (1=INTERNO, 2=CONVIDADO, 3=EXTERNO).
-    - retorno: dict | None — dicionário autenticado ou None se falhar.
+    Acoplamento:
+        - login: str — identificador digitado pelo usuário.
+        - senha: str — senha digitada.
+        - retorno: dict | int — dicionário usuário se sucesso, ou código de erro:
+            0 = sucesso (retorna dict do usuário)
+            1 = login inexistente
+            2 = senha incorreta
+            3 = campos inválidos
 
-Condições de Acoplamento:
-    AE: login e senha são strings não vazias.
-    AE: lista_usuarios pode estar vazia; seus elementos possuem as chaves acima.
-    AS: Se login e senha coincidirem, devolve o próprio dict.
-    AS: Caso contrário, devolve None.
+    Condições de Acoplamento:
+        AE: login e senha são strings.
+        AS: Retorna usuário se autenticação bem-sucedida ou código de erro.
 
-Descrição:
-    1) Percorrer cada usuário em lista_usuarios.
-    2) Comparar user['login'] e user['senha'] com os parâmetros.
-    3) Encontrando correspondência exata, retornar o dicionário.
-    4) Ao final da iteração sem sucesso, retornar None.
+    Descrição:
+        1) Validar campos (não vazios, senha >= 3 caracteres).
+        2) Verificar se login existe.
+        3) Verificar se senha está correta.
+        4) Retornar usuário ou código de erro apropriado.
 
-Hipóteses:
-    - A lista reflete o catálogo válido no momento da chamada.
-    - Não há dois usuários com o mesmo 'login' (unicidade garantida em cadastro).
+    Hipóteses:
+        - Lista de usuários reflete o catálogo válido.
+        - Logins são únicos.
 
-Restrições:
-    - Busca sequencial O(n).
-    - Não altera estado dos dicionários; apenas leitura.
+    Restrições:
+        - Busca sequencial O(n).
 """
 def autentica(login: str, senha: str):
-    for u in usuarios:
-        if u["login"] == login and u["senha"] == senha:
-            return u
-    return None
+    # Validação de campos
+    if not login or not senha or len(senha) < 3:
+        return 3
+    
+    # Buscar usuário
+    user = buscarUsuario(login)
+    if user is None:
+        return 1
+    
+    # Verificar senha
+    if user["senha"] != senha:
+        return 2
+    
+    return user
+
+
+"""
+    Nome: getLogin(usuario)
+
+    Objetivo:
+        Obter o login de um usuário sem expor a estrutura interna.
+
+    Acoplamento:
+        - usuario: dict — objeto usuário.
+        - retorno: str — login do usuário.
+
+    Descrição:
+        Função de acesso que encapsula o campo "login" do usuário.
+"""
+def getLogin(usuario: dict) -> str:
+    """Retorna o login do usuário de forma encapsulada."""
+    return usuario["login"]
+
+"""
+    Nome: getTipo(usuario)
+
+    Objetivo:
+        Obter o tipo de um usuário sem expor a estrutura interna.
+
+    Acoplamento:
+        - usuario: dict — objeto usuário.
+        - retorno: int — tipo do usuário (1=interno, 2=convidado, 3=externo).
+
+    Descrição:
+        Função de acesso que encapsula o campo "tipo" do usuário.
+"""
+def getTipo(usuario: dict) -> int:
+    """Retorna o tipo do usuário de forma encapsulada."""
+    if usuario is None:
+        return -1
+    return usuario["tipo"]

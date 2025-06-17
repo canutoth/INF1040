@@ -200,12 +200,19 @@ def AutenticarUsuario():
     login_inp = input("Login › ").strip()
     senha_inp = input("Senha › ").strip()
 
-    usuario = usuario_mod.autentica(login_inp, senha_inp)
-    if usuario:
-        USUARIO_ATUAL = usuario
-        print(f"✅ Bem-vindo(a), {USUARIO_ATUAL['login']}!")
-    else:
-        TratarErros("AUTH_FAIL")
+    resultado = usuario_mod.autentica(login_inp, senha_inp)
+    if isinstance(resultado, dict):  # Sucesso - retornou o usuário
+        USUARIO_ATUAL = resultado
+        print(f"✅ Bem-vindo(a), {usuario_mod.getLogin(USUARIO_ATUAL)}!")
+    else:  # Erro - retornou código numérico
+        if resultado == 1:
+            print("⚠️ Login inexistente.")
+        elif resultado == 2:
+            print("⚠️ Senha incorreta.")
+        elif resultado == 3:
+            print("⚠️ Campos inválidos. Login e senha devem ser preenchidos e senha deve ter pelo menos 3 caracteres.")
+        else:
+            TratarErros("AUTH_FAIL")
 
 """
     Nome: AlocarVaga()
@@ -246,7 +253,7 @@ def AlocarVaga():
         GerenciaFila(USUARIO_ATUAL)
         TratarErros("SEM_VAGAS")
     else:
-        est_mod.ocupar_vaga_por_login(est, USUARIO_ATUAL["login"])
+        est_mod.ocupar_vaga_por_login(est, usuario_mod.getLogin(USUARIO_ATUAL))
         print(f"✅ Vaga {vaga['id']} ocupada. Boa estadia!")
 
 """
@@ -308,7 +315,7 @@ def LiberarVaga():
         - Prioridade: tipo 1 < 2 < 3.
     """
 def GerenciaFila(usuario):
-    if fila_mod.consultarPosicaoNaFila(FILA, usuario["login"]) == -1:
+    if fila_mod.consultarPosicaoNaFila(FILA, usuario_mod.getLogin(usuario)) == -1:
         fila_mod.adicionarNaFila(FILA, usuario)
         fila_mod.ordenarFilaPorPrioridade(FILA)
 
@@ -342,10 +349,10 @@ def AtualizarEstado(est):
 
     prox = fila_mod.retornaPrimeiro(FILA)
     if prox:
-        ok, _ = est_mod.ocupar_vaga_por_login(est, prox["login"])
+        ok, _ = est_mod.ocupar_vaga_por_login(est, usuario_mod.getLogin(prox))
         if ok:
-            fila_mod.removerDaFila(FILA, prox["login"])
-            print(f"🔔 Usuário {prox['login']} foi chamado para ocupar a vaga {vaga['id']}.")
+            fila_mod.removerDaFila(FILA, usuario_mod.getLogin(prox))
+            print(f"🔔 Usuário {usuario_mod.getLogin(prox)} foi chamado para ocupar a vaga {vaga['id']}.")
 
 
 """
@@ -373,7 +380,7 @@ def ExibirResumo():
 
     print(f"Usuários na fila: {len(FILA)}")
     if USUARIO_ATUAL:
-        print(f"Usuário autenticado: {USUARIO_ATUAL['login']}")
+        print(f"Usuário autenticado: {usuario_mod.getLogin(USUARIO_ATUAL)}")
     else:
         print("Nenhum usuário autenticado.")
 

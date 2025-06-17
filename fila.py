@@ -1,3 +1,4 @@
+import usuario
 """
     Nome: inicializarFila()
 
@@ -43,7 +44,7 @@ def inicializarFila():
         AS: devolve posição correta ou –1.
 
     Descrição:
-        Itera enumerate(fila); compara u['login'] com id_usuario.
+        Itera enumerate(fila); compara getLogin(u) com id_usuario.
 
     Hipóteses:
         - Logins são únicos.
@@ -52,8 +53,8 @@ def inicializarFila():
         - Busca O(n).
     """
 def consultarPosicaoNaFila(fila, id_usuario):
-    for i, usuario in enumerate(fila):
-        if usuario["login"] == id_usuario:
+    for i, user in enumerate(fila):
+        if usuario.getLogin(user) == id_usuario:
             return i + 1
     return -1
 
@@ -69,18 +70,18 @@ def consultarPosicaoNaFila(fila, id_usuario):
         - retorno: int — 0=sucesso, –1=já presente.
 
     Condições de Acoplamento:
-        AE: usuario['tipo'] ∈ {1,2,3}.
+        AE: getTipo(usuario) ∈ {1,2,3}.
         AS: fila reordenada por prioridade após inserção.
 
     Descrição:
         1) Se login já presente → –1.
         2) append(usuario) → ordenarFilaPorPrioridade() → 0.
     """
-def adicionarNaFila(fila, usuario):
-    if consultarPosicaoNaFila(fila, usuario["login"]) != -1:
+def adicionarNaFila(fila, usuario_obj):
+    if consultarPosicaoNaFila(fila, usuario.getLogin(usuario_obj)) != -1:
         return -1
 
-    fila.append(usuario)
+    fila.append(usuario_obj)
     ordenarFilaPorPrioridade(fila)
     return 0
 
@@ -96,11 +97,11 @@ def adicionarNaFila(fila, usuario):
         - retorno: int — 0 removido, –1 não achou.
 
     Descrição:
-        Percorre lista; del quando u['login'] coincide.
+        Percorre lista; del quando getLogin(u) coincide.
     """
 def removerDaFila(fila, id_usuario):
     for i, u in enumerate(fila):
-        if u["login"] == id_usuario:
+        if usuario.getLogin(u) == id_usuario:
             del fila[i]
             return 0
     return -1
@@ -116,11 +117,11 @@ def removerDaFila(fila, id_usuario):
         - fila: list[dict].
 
     Descrição:
-        list.sort(key=lambda u: u['tipo']) — sort do Python é estável.
+        list.sort(key=lambda u: getTipo(u)) — sort do Python é estável.
     """
 def ordenarFilaPorPrioridade(fila):
     if len(fila) > 1:
-        fila.sort(key=lambda u: u["tipo"])
+        fila.sort(key=lambda u: usuario.getTipo(u))
 
 """
     Nome: retornaPrimeiro(fila)
