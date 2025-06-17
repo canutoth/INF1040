@@ -5,8 +5,7 @@
 import csv
 import sys
 import usuario as usuario_mod
-import login as login_mod
-import fila        as fila_mod
+import fila as fila_mod
 import estacionamento as est_mod
 
 # ---------------------------- variáveis globais ------------------------------
