@@ -328,7 +328,7 @@ def salvarUsuarios(caminho_usuarios: str, caminho_convidados: str) -> None:
         AS: Retorna usuário se autenticação bem-sucedida ou código de erro.
 
     Descrição:
-        1) Validar campos (não vazios, senha >= 3 caracteres).
+        1) Validar campos (não vazios).
         2) Verificar se login existe.
         3) Verificar se senha está correta.
         4) Retornar usuário ou código de erro apropriado.
