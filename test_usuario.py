@@ -2,6 +2,7 @@ import pytest
 import tempfile
 import os
 import usuario
+from unittest.mock import patch
 
 # ---------------------------------------------------------------------------
 # Testes para funções da interface pública do módulo usuario
@@ -55,7 +56,7 @@ def teste_autentica_senha_incorreta():
 
 def teste_autentica_campos_invalidos():
     """Testa autenticação com campos inválidos"""
-    resultado = usuario.autentica("", " ")
+    resultado = usuario.autentica("", "")
     assert resultado == 3
 
 def teste_autentica_convidado():
@@ -125,6 +126,164 @@ def teste_salvar_usuarios():
             content = f.read()
             assert "11122233344,guest123,2" in content
 
-# Nota: criaInterno() e criaConvidado() não são testadas diretamente pois 
-# dependem de input/output do usuário. Suas funcionalidades são testadas 
-# indiretamente através dos testes de autentica(), carregarUsuarios() e salvarUsuarios().
+# ---------------------------------------------------------------------------
+# Testes para funções interativas usando mock
+# ---------------------------------------------------------------------------
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_interno_sucesso(mock_print, mock_input):
+    """Testa criação bem-sucedida de usuário interno"""
+    usuario.usuarios.clear()
+    mock_input.side_effect = ["1234567", "minhasenha"]
+    
+    usuario.criaInterno()
+    
+    assert len(usuario.usuarios) == 1
+    user = usuario.usuarios[0]
+    assert usuario.getLogin(user) == "1234567"
+    assert user["senha"] == "minhasenha"
+    assert usuario.getTipo(user) == 1
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_interno_matricula_invalida_depois_valida(mock_print, mock_input):
+    """Testa criação com matrícula inválida primeiro, depois válida"""
+    usuario.usuarios.clear()
+    mock_input.side_effect = ["123456", "12345678", "123abc7", "1234567", "senha123"]
+    
+    usuario.criaInterno()
+    
+    assert len(usuario.usuarios) == 1
+    assert usuario.getLogin(usuario.usuarios[0]) == "1234567"
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_interno_matricula_existente(mock_print, mock_input):
+    """Testa tentativa de criação com matrícula já existente"""
+    usuario.usuarios.clear()
+    usuario.usuarios.append(usuario.novo_usuario("1234567", "senha", 1))
+    mock_input.side_effect = ["1234567", "7654321", "novasenha"]
+    
+    usuario.criaInterno()
+    
+    assert len(usuario.usuarios) == 2
+    user_novo = next(u for u in usuario.usuarios if usuario.getLogin(u) == "7654321")
+    assert user_novo["senha"] == "novasenha"
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_interno_cancelamento(mock_print, mock_input):
+    """Testa cancelamento da criação de usuário interno"""
+    usuario.usuarios.clear()
+    inicial_count = len(usuario.usuarios)
+    mock_input.side_effect = ["0"]
+    
+    usuario.criaInterno()
+    
+    assert len(usuario.usuarios) == inicial_count
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_interno_senha_vazia(mock_print, mock_input):
+    """Testa criação com senha vazia"""
+    usuario.usuarios.clear()
+    mock_input.side_effect = ["1234567", ""]
+    
+    usuario.criaInterno()
+    
+    assert len(usuario.usuarios) == 0
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_convidado_sucesso(mock_print, mock_input):
+    """Testa criação bem-sucedida de usuário convidado"""
+    usuario.usuarios.clear()
+    usuario.convidados.clear()
+    # Adiciona CPF autorizado na lista de convidados
+    usuario.convidados.append(usuario.novo_usuario("11122233344", "temp", 2))
+    mock_input.side_effect = ["11122233344", "senhaconvidado"]
+    
+    usuario.criaConvidado()
+    
+    # Verifica se foi adicionado aos usuários (além de já estar em convidados)
+    user = usuario.buscarUsuario("11122233344")
+    assert user is not None
+    assert user["senha"] == "senhaconvidado"
+    assert usuario.getTipo(user) == 2
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_convidado_cpf_invalido_depois_valido(mock_print, mock_input):
+    """Testa criação com CPF inválido primeiro, depois válido"""
+    usuario.usuarios.clear()
+    usuario.convidados.clear()
+    usuario.convidados.append(usuario.novo_usuario("11122233344", "temp", 2))
+    mock_input.side_effect = ["1112223334", "111222333445", "11a22233344", "11122233344", "senha123"]
+    
+    usuario.criaConvidado()
+    
+    user = usuario.buscarUsuario("11122233344")
+    assert user is not None
+    assert user["senha"] == "senha123"
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_convidado_cpf_nao_autorizado(mock_print, mock_input):
+    """Testa tentativa com CPF não autorizado"""
+    usuario.usuarios.clear()
+    usuario.convidados.clear()
+    # Lista de convidados vazia - CPF não autorizado
+    mock_input.side_effect = ["11122233344", "0"]
+    
+    usuario.criaConvidado()
+    
+    user = usuario.buscarUsuario("11122233344")
+    assert user is None
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_convidado_cpf_ja_convidado(mock_print, mock_input):
+    """Testa CPF que já recebeu acesso de convidado"""
+    usuario.usuarios.clear()
+    usuario.convidados.clear()
+    # CPF já existe como usuário convidado
+    convidado_existente = usuario.novo_usuario("11122233344", "senhaantiga", 2)
+    usuario.usuarios.append(convidado_existente)
+    usuario.convidados.append(convidado_existente)
+    mock_input.side_effect = ["11122233344"]
+    
+    usuario.criaConvidado()
+    
+    # Deve manter apenas o usuário original
+    users_com_cpf = [u for u in usuario.usuarios if usuario.getLogin(u) == "11122233344"]
+    assert len(users_com_cpf) == 1
+    assert users_com_cpf[0]["senha"] == "senhaantiga"
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_convidado_cancelamento(mock_print, mock_input):
+    """Testa cancelamento da criação de convidado"""
+    usuario.usuarios.clear()
+    usuario.convidados.clear()
+    inicial_count = len(usuario.usuarios)
+    mock_input.side_effect = ["0"]
+    
+    usuario.criaConvidado()
+    
+    assert len(usuario.usuarios) == inicial_count
+
+@patch('builtins.input')
+@patch('builtins.print')
+def teste_cria_convidado_senha_vazia(mock_print, mock_input):
+    """Testa criação de convidado com senha vazia"""
+    usuario.usuarios.clear()
+    usuario.convidados.clear()
+    usuario.convidados.append(usuario.novo_usuario("11122233344", "temp", 2))
+    mock_input.side_effect = ["11122233344", ""]
+    
+    inicial_count = len(usuario.usuarios)
+    usuario.criaConvidado()
+    
+    # Não deve adicionar usuário se senha for vazia
+    assert len(usuario.usuarios) == inicial_count

@@ -210,7 +210,7 @@ def AutenticarUsuario():
         elif resultado == 2:
             print("⚠️ Senha incorreta.")
         elif resultado == 3:
-            print("⚠️ Campos inválidos. Login e senha devem ser preenchidos e senha deve ter pelo menos 3 caracteres.")
+            print("⚠️ Campos inválidos. Login e senha devem ser preenchidos.")
         else:
             TratarErros("AUTH_FAIL")
 

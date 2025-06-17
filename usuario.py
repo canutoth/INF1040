@@ -342,7 +342,7 @@ def salvarUsuarios(caminho_usuarios: str, caminho_convidados: str) -> None:
 """
 def autentica(login: str, senha: str):
     # Validação de campos
-    if not login or not senha or len(senha) < 3:
+    if not login or not senha:
         return 3
     
     # Buscar usuário
