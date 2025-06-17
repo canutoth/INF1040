@@ -116,3 +116,20 @@ def status(vaga: dict) -> str:
 def ocupaVagaPorId(vagas: list[dict], vaga_id: int, login: str) -> bool:
     alvo = next((v for v in vagas if v["id"] == vaga_id), None)
     return ocupar(alvo, login) if alvo else False
+
+"""
+    Nome: getId(vaga)
+
+    Objetivo:
+        Obter o id de uma vaga sem expor a estrutura interna.
+
+    Acoplamento:
+        - vaga: dict — objeto vaga.
+        - retorno: str — id da vaga.
+
+    Descrição:
+        Função de acesso que encapsula o campo "id" da vaga.
+"""
+def getId(vaga: dict) -> str:
+    """Retorna o id da vaga de forma encapsulada."""
+    return vaga["id"]

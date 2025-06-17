@@ -287,7 +287,7 @@ def LiberarVaga():
     for est in ESTACIONAMENTOS:
         vaga_id = est_mod.liberar_vaga_de(est, USUARIO_ATUAL)
         if vaga_id is not None:
-            print(f"✅ Vaga {vaga_id} liberada no estacionamento '{est['nome']}'.")
+            print(f"✅ Vaga {vaga_id} liberada no estacionamento '{est_mod.getNome(est)}'.")
             AtualizarEstado(est)
             return
 
@@ -352,8 +352,7 @@ def AtualizarEstado(est):
         ok, _ = est_mod.ocupar_vaga_por_login(est, usuario_mod.getLogin(prox))
         if ok:
             fila_mod.removerDaFila(FILA, usuario_mod.getLogin(prox))
-            print(f"🔔 Usuário {usuario_mod.getLogin(prox)} foi chamado para ocupar a vaga {vaga['id']}.")
-
+            print(f"🔔 Usuário {usuario_mod.getLogin(prox)} foi chamado para ocupar a vaga {vaga.getId()}.")
 
 """
     Nome: ExibirResumo()

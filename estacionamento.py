@@ -194,3 +194,20 @@ def selecionar_estacionamento(ests: list[dict]):
             return ests[int(esc) - 1]
         except (ValueError, IndexError):
             print("⚠️ Opção inválida. Tente novamente ou Enter para cancelar.")
+
+"""
+    Nome: getNome(estacionamento)
+
+    Objetivo:
+        Obter o nome de um estacionamento sem expor a estrutura interna.
+
+    Acoplamento:
+        - estacionamento: dict — objeto estacionamento.
+        - retorno: str — nome do estacionamento.
+
+    Descrição:
+        Função de acesso que encapsula o campo "nome" do estacionamento.
+"""
+def getNome(estacionamento: dict) -> str:
+    """Retorna o nome do estacionamento de forma encapsulada."""
+    return estacionamento["nome"]
