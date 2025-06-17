@@ -41,7 +41,7 @@ def inicializarFila():
 
     Condições de Acoplamento:
         AE: fila lista válida; id_usuario não vazio.
-        AS: devolve posição correta ou –1.
+        AS: devolve posição correta (idx + 1) ou –1.
 
     Descrição:
         Itera enumerate(fila); compara getLogin(u) com id_usuario.
