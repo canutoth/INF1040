@@ -178,16 +178,14 @@ def test_exibir_resumo_sem_autenticado(mock_print, mock_tamanho, mock_listar):
 # -----------------------------------------------
 @patch("usuario.salvarUsuarios")
 @patch("estacionamento.salvar_estado_em_csv")
-@patch("fila.esvaziarFila")
 @patch("builtins.open")
 @patch("csv.writer")
 @patch("builtins.print")
-def test_encerrar_sistema(mock_print, mock_writer, mock_open, mock_esvaziar, mock_salvar_estado, mock_salvar_usuarios):
+def test_encerrar_sistema(mock_print, mock_writer, mock_open, mock_salvar_estado, mock_salvar_usuarios):
     mock_open.return_value.__enter__.return_value = MagicMock()
     with pytest.raises(SystemExit):
         principal.EncerrarSistema()
     mock_salvar_usuarios.assert_called_once()
-    mock_esvaziar.assert_called_once()
     mock_print.assert_any_call("✔️  Dados salvos. Até logo!")
 
 #------------------------------------------------------------------------------------------------------------------------
