@@ -104,7 +104,7 @@ def removerDaFila(id_usuario):
 
     Objetivo:
         Ordenar in-place pelo campo 'tipo':
-        1 primeiro, depois 2, depois 3 (ordem estável).
+        1 primeiro, depois 2.
 
     Acoplamento:
         - _FILA: list[dict].
