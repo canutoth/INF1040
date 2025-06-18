@@ -224,3 +224,28 @@ def test_selecionar_estacionamento(monkeypatch, capsys):
 def test_get_nome():
     est = _mock_est("Bloco CSV", livres=1, ocupadas=1)
     assert est_mod.getNome(est) == "Bloco CSV"
+
+def test_vagas_livres_zero():
+    """vagas_livres deve retornar 0 quando não há nenhuma vaga livre."""
+    est = _mock_est(qtd_vagas=2, ocupadas=[1, 2])   # 100 % ocupadas
+    assert est_mod.vagas_livres(est) == 0
+
+# ---------------------------------------------------------------------------
+
+def test_selecionar_estacionamento_lista_vazia(capsys):
+    """Lista vazia -> imprime aviso e devolve None."""
+    est = est_mod.selecionar_estacionamento([])
+    saida = capsys.readouterr().out
+    assert est is None
+    assert "nenhum estacionamento" in saida.lower()
+
+# ---------------------------------------------------------------------------
+
+import re
+def test_listar_status_vagas_sem_vagas(capsys):
+    est = est_mod.novo_estacionamento("SemVagas")     # lista de vagas vazia
+    est_mod.listar_status_vagas(est)
+    out = capsys.readouterr().out
+    assert "SemVagas" in out
+    # não deve existir “Vaga <número>” (ex.: “Vaga 01”, “Vaga 1” etc.)
+    assert re.search(r"Vaga\s+\d+", out) is None

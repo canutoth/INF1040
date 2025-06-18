@@ -282,3 +282,29 @@ def teste_cria_convidado_senha_vazia(mock_print, mock_input):
     
     # Não deve adicionar usuário se senha for vazia
     assert len(usuario.usuarios) == inicial_count
+
+def test_validaLogin_ok():
+    assert usuario.validaLogin("1234567") is True
+
+def test_validaLogin_tamanho_errado():
+    # 6 e 8 dígitos → False
+    assert usuario.validaLogin("123456") is False
+    assert usuario.validaLogin("12345678") is False
+
+def test_validaLogin_nao_numerico():
+    # contém letra
+    assert usuario.validaLogin("1234a67") is False
+
+def test_loginExiste_true_false():
+    usuario.usuarios.clear()
+    usuario.usuarios.append(usuario.novo_usuario("7654321", "x", 1))
+
+    assert usuario.loginExiste("7654321") is True   # já existe
+    assert usuario.loginExiste("9999999") is False  # não existe
+
+def test_cpfConvidadoValido_true_false():
+    usuario.convidados.clear()
+    usuario.convidados.append(usuario.novo_usuario("11122233344", "x", 2))
+
+    assert usuario.cpfConvidadoValido("11122233344") is True   # presente
+    assert usuario.cpfConvidadoValido("55566677788") is False  # ausente

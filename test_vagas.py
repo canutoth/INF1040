@@ -61,3 +61,10 @@ def test_liberar_vaga_ja_livre():
     v = vaga_mod.nova_vaga(5)                    # já livre
     vaga_mod.liberar(v)                          # chamada idempotente
     assert vaga_mod.estaLivre(v) and v["estado"] == 0
+
+# ---------------------------------------------------------------------------
+def test_estaOcupadaPor_login_errado():
+    """Vaga ocupada, mas consulta com login diferente → False."""
+    v = vaga_mod.nova_vaga(6)
+    assert vaga_mod.ocupar(v, "U1")
+    assert not vaga_mod.estaOcupadaPor(v, "U2")
