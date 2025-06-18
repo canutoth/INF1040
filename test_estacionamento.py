@@ -126,8 +126,8 @@ def teste_liberar_vaga_de_usuario_sem_vaga():
 # ---------------------------------------------------------------------------
 def teste_listar_estacionamentos_saida(capsys):
     ests = [
-        _mock_est(qtd_vagas=2, ocupadas=[1], nome="Bloco A"),
-        _mock_est(qtd_vagas=3, ocupadas=[],  nome="Bloco B"),
+        _mock_est(qtd_vagas=2, ocupadas=[1], name="Bloco A"),
+        _mock_est(qtd_vagas=3, ocupadas=[],  name="Bloco B"),
     ]
     est_mod.listar_estacionamentos(ests)
     capt = capsys.readouterr().out
@@ -195,3 +195,8 @@ def test_selecionar_estacionamento(monkeypatch, capsys):
     monkeypatch.setattr(builtins, "input", lambda _: "")
     est_none = est_mod.selecionar_estacionamento(ests)
     assert est_none is None
+
+# ---------------------------------------------------------------------------
+def test_get_nome():
+    est = _mock_est("Bloco CSV", livres=1, ocupadas=1)
+    assert est_mod.getNome(est) == "Bloco CSV"
