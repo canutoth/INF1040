@@ -37,7 +37,7 @@ ERROS = {
     Condições de Acoplamento:
         AE: arquivos CSV podem existir ou não; funções de leitura tratam falta.
         AS: ESTACIONAMENTOS é populado; usuários e convidados ficam em memória
-            prontos para uso. Fila interna do módulo fila_mod fica inicializada.
+            prontos para uso.
 
     Descrição:
         1) Carrega usuários recorrentes (tipo 1) e convidados (tipo 2).
@@ -105,7 +105,7 @@ def MenuInicial():
         elif escolha == "2":
             print("\nVocê deseja criar uma conta como:")
             print("1) Aluno, Professor ou Funcionário")
-            print("2) Visitante")
+            print("2) Convidado")
             tipo = input("Escolha › ").strip()
             if tipo == "1":
                 usuario_mod.criaInterno()
@@ -166,30 +166,25 @@ def ExibirMenuPrincipal():
             TratarErros("OPCAO_INVALIDA")
 
 """
-    Nome: AutenticarUsuario()
+Nome: AutenticarUsuario()
 
-    Objetivo:
-        Solicitar credenciais e definir USUARIO_ATUAL quando válidas.
+Objetivo:
+    Solicitar credenciais e definir USUARIO_ATUAL quando válidas.
 
-    Acoplamento:
-        - login_mod.autentica().
-        - usuario_mod.listarUsuarios() – lista de objetos Usuario.
-        - variável global USUARIO_ATUAL.
+Acoplamento:
+    - usuario_mod.autentica(login, senha) — devolve:
+        • dict do usuário (sucesso)
+        • 1 = login inexistente
+        • 2 = senha incorreta
+        • 3 = campos vazios
+    - variável global USUARIO_ATUAL.
 
-    Condições de Acoplamento:
-        AE: lista de usuários carregada.
-        AS: USUARIO_ATUAL recebe objeto Usuario se sucesso; caso contrário
-            exibe erro apropriado.
-
-    Descrição:
-        1) Ler login e senha.  
-        2) Chamar login_mod.autentica().  
-        3) Se retorno não-None → setar USUARIO_ATUAL.  
-        4) Caso contrário → TratarErros("AUTH_FAIL").
-
-    Hipóteses:
-        - Função autentica devolve objeto ou None, não lança exceção.
-    """
+Descrição:
+    1) Ler login e senha do teclado.
+    2) Chamar usuario_mod.autentica().
+    3) Se retornar dict → armazenar em USUARIO_ATUAL e saudar usuário.
+    4) Se retornar código de erro → imprimir mensagem específica.
+"""
 def AutenticarUsuario():
     global USUARIO_ATUAL
     login_inp = input("Login › ").strip()
@@ -216,8 +211,8 @@ def AutenticarUsuario():
         Tentar ocupar uma vaga livre para USUARIO_ATUAL ou colocá-lo na FILA.
 
     Acoplamento:
-        - est_mod.selecionarEstacionamento(), est_mod.getVagaDisponivel().
-        - Estacionamento.ocuparVagaPorLogin().
+        - est_mod.selecionarEstacionamento(), est_mod.get_vaga_disponivel().
+        - Estacionamento.ocupar_vaga_por_login().
         - fila_mod.* para gerenciamento de fila.
 
     Condições de Acoplamento:
@@ -227,11 +222,11 @@ def AutenticarUsuario():
     Descrição:
         1) Verifica autenticação.  
         2) Permite escolha do estacionamento.  
-        3) Se getVagaDisponivel == –1 → GerenciaFila + erro “SEM_VAGAS”.  
-        4) Caso contrário → ocuparVagaPorLogin() e confirmar.
+        3) Se get_vaga_disponivel == –1 → GerenciaFila + erro “SEM_VAGAS”.  
+        4) Caso contrário → ocupar_vaga_por_login() e confirmar.
 
     Hipóteses:
-        - ocuparVagaPorLogin() devolve tupla(sucesso,id); usamos apenas efeito.
+        - ocupar_vaga_por_login() devolve tupla(sucesso,id); usamos apenas efeito.
     """
 def AlocarVaga():
     if USUARIO_ATUAL is None:
@@ -258,7 +253,7 @@ def AlocarVaga():
         Liberar a vaga ocupada por USUARIO_ATUAL (qualquer estacionamento).
 
     Acoplamento:
-        - Estacionamento.liberarVagaDe().
+        - Estacionamento.liberar_vaga_de().
         - AtualizarEstado() para realocar fila.
 
     Condições de Acoplamento:
@@ -267,7 +262,7 @@ def AlocarVaga():
 
     Descrição:
         Itera todos os estacionamentos:  
-        • se liberarVagaDe() devolver id → imprime sucesso e chama
+        • se liberar_vaga_de() devolver id → imprime sucesso e chama
           AtualizarEstado(est).  
         • se nenhum estacionamento contiver o usuário → erro.
 
@@ -306,7 +301,7 @@ def LiberarVaga():
         Se consultarPosicaoNaFila == –1 → adicionarNaFila().
 
     Hipóteses:
-        - Prioridade: tipo 1 < 2 < 3.
+        - Prioridade: tipo 1 < 2.
     """
 def GerenciaFila(usuario):
     if fila_mod.consultarPosicaoNaFila(usuario_mod.getLogin(usuario)) == -1:
