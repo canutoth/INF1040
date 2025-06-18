@@ -367,8 +367,19 @@ def autentica(login: str, senha: str):
         - usuario: dict — objeto usuário.
         - retorno: str — login do usuário.
 
+    Condições de Acoplamento:
+        AE: usuario é dict válido com chave 'login'.
+        AS: retorna string do campo login.
+
     Descrição:
         Função de acesso que encapsula o campo "login" do usuário.
+
+    Hipóteses:
+        - usuario possui a chave 'login' obrigatória.
+
+    Restrições:
+        - Acesso direto O(1).
+        - Não valida existência da chave.
 """
 def getLogin(usuario: dict) -> str:
     """Retorna o login do usuário de forma encapsulada."""
@@ -384,8 +395,19 @@ def getLogin(usuario: dict) -> str:
         - usuario: dict — objeto usuário.
         - retorno: int — tipo do usuário (1=interno, 2=convidado).
 
+    Condições de Acoplamento:
+        AE: usuario pode ser dict válido ou None.
+        AS: retorna tipo inteiro ou -1 se usuario é None.
+
     Descrição:
         Função de acesso que encapsula o campo "tipo" do usuário.
+
+    Hipóteses:
+        - Se usuario não é None, possui chave 'tipo'.
+        - Tipos válidos são inteiros positivos.
+
+    Restrições:
+        - Não valida existência da chave.
 """
 def getTipo(usuario: dict) -> int:
     """Retorna o tipo do usuário de forma encapsulada."""
