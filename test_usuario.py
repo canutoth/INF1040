@@ -23,11 +23,6 @@ def teste_get_tipo_convidado():
     user2 = usuario.novo_usuario("1234568", "senha", 2)
     assert usuario.getTipo(user2) == 2
 
-def teste_get_tipo_externo():
-    """Testa função de acesso ao tipo - usuário externo"""
-    user3 = usuario.novo_usuario("1234569", "senha", 3)
-    assert usuario.getTipo(user3) == 3
-
 def teste_get_tipo_erro():
     """Testa função de acesso ao tipo - caso de erro"""
     assert usuario.getTipo(None) == -1

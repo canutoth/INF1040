@@ -382,7 +382,7 @@ def getLogin(usuario: dict) -> str:
 
     Acoplamento:
         - usuario: dict — objeto usuário.
-        - retorno: int — tipo do usuário (1=interno, 2=convidado, 3=externo).
+        - retorno: int — tipo do usuário (1=interno, 2=convidado).
 
     Descrição:
         Função de acesso que encapsula o campo "tipo" do usuário.
