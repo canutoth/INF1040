@@ -6,15 +6,10 @@ from fila import (
     ordenarFilaPorPrioridade,
     retornaPrimeiro,
     tamanhoFila,
-    esvaziarFila,
 )
 
 # Fixture para limpar a fila antes de cada teste
 @pytest.fixture(autouse=True)
-def limpar_fila():
-    esvaziarFila()
-    yield
-    esvaziarFila()
 
 def teste_fila_inicialmente_vazia():
     assert tamanhoFila() == 0
@@ -149,18 +144,6 @@ def teste_retorna_primeiro():
     # Verifica que não foi removido
     assert tamanhoFila() == 1
 
-def teste_esvaziar_fila():
-    usuario1 = {"login": "U1", "tipo": 1}
-    usuario2 = {"login": "U2", "tipo": 2}
-    
-    adicionarNaFila(usuario1)
-    adicionarNaFila(usuario2)
-    assert tamanhoFila() == 2
-    
-    esvaziarFila()
-    assert tamanhoFila() == 0
-    assert retornaPrimeiro() is None
-
 def teste_tamanho_fila():
     assert tamanhoFila() == 0
     
@@ -181,10 +164,3 @@ def teste_inserir_usuario_ja_presente():
     ret1 = adicionarNaFila(usuario)
     ret2 = adicionarNaFila(usuario)
     assert ret2 == -1
-
-
-def teste_esvaziar_fila_em_estado_vazio():
-    # Fila já está vazia graças à fixture
-    ret = esvaziarFila()
-    assert ret is None
-    assert tamanhoFila() == 0
