@@ -9,7 +9,6 @@ import fila as fila_mod
 import estacionamento as est_mod
 
 # ---------------------------- variáveis globais ------------------------------
-FILA = None
 ESTACIONAMENTOS = []
 USUARIO_ATUAL = None
 
@@ -27,24 +26,23 @@ ERROS = {
     Nome: IniciarSistema()
 
     Objetivo:
-        Carregar usuários, inicializar fila e estacionamentos antes de qualquer
+        Carregar usuários e estacionamentos antes de qualquer
         interação do usuário.
 
     Acoplamento:
         - arquivos 'users.csv', 'guests.csv', 'estacionamentos.csv'.
-        - módulos: usuario_mod, fila_mod, est_mod.
+        - módulos: usuario_mod, est_mod.
         - retorna: None (altera variáveis globais).
 
     Condições de Acoplamento:
         AE: arquivos CSV podem existir ou não; funções de leitura tratam falta.
-        AS: FILA recebe lista vazia; ESTACIONAMENTOS é populado; usuários,
-            convidados e fila ficam em memória prontos para uso.
+        AS: ESTACIONAMENTOS é populado; usuários e convidados ficam em memória
+            prontos para uso. Fila interna do módulo fila_mod fica inicializada.
 
     Descrição:
         1) Carrega usuários recorrentes (tipo 1) e convidados (tipo 2).
-        2) Cria FILA vazia via fila_mod.inicializarFila().
-        3) Constrói objetos Estacionamento a partir do CSV de estado.
-        4) Exibe mensagem de sucesso.
+        2) Constrói objetos Estacionamento a partir do CSV de estado.
+        3) Exibe mensagem de sucesso.
 
     Hipóteses:
         - Funções usuario_mod.carregarUsuarios e est_mod.criarEstacionamentosDeCSV
@@ -54,16 +52,13 @@ ERROS = {
         - Deve ser chamada uma única vez, logo no início do programa.
 """
 def IniciarSistema():
-    global FILA, ESTACIONAMENTOS
+    global ESTACIONAMENTOS
 
     # 1. Carregar usuários e convidados
     usuario_mod.carregarUsuarios("users.csv")
     usuario_mod.carregarUsuarios("guests.csv", tipo_padrao=2)
 
-    # 2. Fila
-    FILA = fila_mod.inicializarFila()
-
-    # 3. Estacionamentos 
+    # 2. Estacionamentos 
     ESTACIONAMENTOS = est_mod.criar_estacionamentos_de_csv("estacionamentos.csv")
 
     print("✅ Sistema iniciado com sucesso.")
@@ -297,33 +292,31 @@ def LiberarVaga():
     Nome: GerenciaFila(usuario)
 
     Objetivo:
-        Garantir que `usuario` esteja na FILA exatamente uma vez, ordenada
+        Garantir que `usuario` esteja na fila exatamente uma vez, ordenada
         por prioridade (.tipo).
 
     Acoplamento:
-        - fila_mod.consultarPosicaoNaFila, adicionarNaFila, ordenarFilaPorPrioridade.
-        - variável global FILA.
+        - fila_mod.consultarPosicaoNaFila, adicionarNaFila.
 
     Condições de Acoplamento:
-        AE: FILA inicializada.
-        AS: FILA contém usuário e está ordenada.
+        AE: fila do módulo fila_mod inicializada.
+        AS: fila contém usuário e está ordenada.
 
     Descrição:
-        Se consultarPosicaoNaFila == –1 → adicionarNaFila(); depois reordena.
+        Se consultarPosicaoNaFila == –1 → adicionarNaFila().
 
     Hipóteses:
         - Prioridade: tipo 1 < 2 < 3.
     """
 def GerenciaFila(usuario):
-    if fila_mod.consultarPosicaoNaFila(FILA, usuario_mod.getLogin(usuario)) == -1:
-        fila_mod.adicionarNaFila(FILA, usuario)
-        fila_mod.ordenarFilaPorPrioridade(FILA)
+    if fila_mod.consultarPosicaoNaFila(usuario_mod.getLogin(usuario)) == -1:
+        fila_mod.adicionarNaFila(usuario)
 
 """
     Nome: AtualizarEstado(est)
 
     Objetivo:
-        Após liberação de vaga, chamar o primeiro da FILA (se houver).
+        Após liberação de vaga, chamar o primeiro da fila (se houver).
 
     Acoplamento:
         - est: Estacionamento onde surgiu vaga.
@@ -331,12 +324,12 @@ def GerenciaFila(usuario):
         - fila_mod.retornaPrimeiro / removerDaFila.
 
     Condições de Acoplamento:
-        AE: est válido; FILA inicializada.
-        AS: Se vaga livre e fila não vazia → ocupação + remoção da FILA.
+        AE: est válido; fila do módulo fila_mod inicializada.
+        AS: Se vaga livre e fila não vazia → ocupação + remoção da fila.
 
     Descrição:
         1) Verificar vaga livre.  
-        2) Se existir, pegar primeiro da FILA.  
+        2) Se existir, pegar primeiro da fila.  
         3) Tentar ocupar; se sucesso → removerDaFila + mensagem.
 
     Hipóteses:
@@ -347,7 +340,7 @@ def AtualizarEstado(est):
     if vaga is None:
         return
 
-    prox = fila_mod.retornaPrimeiro(FILA)
+    prox = fila_mod.retornaPrimeiro()
     if prox:
         ok, id_vaga = est_mod.ocupar_vaga_por_login(est, usuario_mod.getLogin(prox))
         if ok:
@@ -359,11 +352,11 @@ def AtualizarEstado(est):
 
     Objetivo:
         Apresentar visão geral do sistema: vagas por estacionamento, tamanho da
-        FILA e usuário autenticado.
+        fila e usuário autenticado.
 
     Acoplamento:
-        - est_mod.ListarEstacionamentos().
-        - FILA global (.tamanho) e USUARIO_ATUAL.
+        - est_mod.listar_estacionamentos().
+        - fila_mod.tamanhoFila() e USUARIO_ATUAL.
 
     Descrição:
         1) Delegar listagem de vagas a est_mod.  
@@ -377,7 +370,7 @@ def ExibirResumo():
     print("\n=======  RESUMO DO SISTEMA  =======")
     est_mod.listar_estacionamentos(ESTACIONAMENTOS)
 
-    print(f"Usuários na fila: {len(FILA)}")
+    print(f"Usuários na fila: {fila_mod.tamanhoFila()}")
     if USUARIO_ATUAL:
         print(f"Usuário autenticado: {usuario_mod.getLogin(USUARIO_ATUAL)}")
     else:
@@ -387,18 +380,20 @@ def ExibirResumo():
     Nome: EncerrarSistema()
 
     Objetivo:
-        Persistir usuários, convidados e estado dos estacionamentos em CSV, e
-        então encerrar o programa.
+        Persistir usuários, convidados e estado dos estacionamentos em CSV,
+        esvaziar a fila e então encerrar o programa.
 
     Acoplamento:
         - usuario_mod.salvarUsuarios().
         - Estacionamento.salvarEstadoEmCSV() em loop de ESTACIONAMENTOS.
+        - fila_mod.esvaziarFila().
         - sys.exit(0).
 
     Descrição:
         1) Salvar users.csv e guests.csv via usuario_mod.  
-        2) Abrir estacionamentos.csv e gravar o snapshot de cada estacionamento.  
-        3) Imprimir confirmação e sair.
+        2) Abrir estacionamentos.csv e gravar o snapshot de cada estacionamento.
+        3) Esvaziar a fila.
+        4) Imprimir confirmação e sair.
 
     Restrições:
         - Chama sys.exit(), portanto não retorna.
@@ -409,6 +404,10 @@ def EncerrarSistema():
         writer = csv.writer(f)
         for est in ESTACIONAMENTOS:
             est_mod.salvar_estado_em_csv(est, writer)
+    
+    # Esvaziar a fila antes de encerrar
+    fila_mod.esvaziarFila()
+    
     print("✔️  Dados salvos. Até logo!")
     sys.exit(0)
 
