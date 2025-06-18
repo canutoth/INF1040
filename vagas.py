@@ -22,11 +22,8 @@ Hipóteses:
 Restrições:
     - Estado "0" representa vaga livre; qualquer string = login ocupado.
 """
-
-
 def nova_vaga(id_vaga: int) -> dict:
     return {"id": id_vaga, "estado": 0}
-
 
 """
     Nome: estaLivre(vaga)
@@ -49,11 +46,8 @@ def nova_vaga(id_vaga: int) -> dict:
     Restrições:
         - Estado "0" representa vaga livre; qualquer string = login ocupado.
     """
-
-
 def estaLivre(vaga: dict) -> bool:
     return vaga["estado"] == 0
-
 
 """
     Nome: estaOcupadaPor(vaga, login)
@@ -78,11 +72,8 @@ def estaLivre(vaga: dict) -> bool:
         - Comparação é case-sensitive.
         - Estado "0" representa vaga livre; qualquer string = login ocupado.
     """
-
-
 def estaOcupadaPor(vaga: dict, login: str) -> bool:
     return vaga["estado"] == login
-
 
 """
     Nome: ocupar(vaga, login)
@@ -109,14 +100,11 @@ def estaOcupadaPor(vaga: dict, login: str) -> bool:
         - Só ocupa vaga se estiver livre (estado = 0).
         - Uma vez ocupada, vaga não pode ser ocupada por outro usuário.
     """
-
-
 def ocupar(vaga: dict, login: str) -> bool:
     if estaLivre(vaga):
         vaga["estado"] = login
         return True
     return False
-
 
 """
     Nome: liberar(vaga)
@@ -140,11 +128,8 @@ def ocupar(vaga: dict, login: str) -> bool:
         - Operação sempre bem-sucedida, independente do estado anterior.
         - Estado "0" representa vaga livre.
     """
-
-
 def liberar(vaga: dict) -> None:
     vaga["estado"] = 0
-
 
 """
     Nome: status(vaga)
@@ -167,13 +152,10 @@ def liberar(vaga: dict) -> None:
     Restrições:
         - Estado "0" representa vaga livre; qualquer string = login ocupado.
     """
-
-
 def status(vaga: dict) -> str:
     if estaLivre(vaga):
         return f"Vaga {vaga['id']:02d}: Livre"
     return f"Vaga {vaga['id']:02d}: Ocupada por {vaga['estado']}"
-
 
 """
     Nome: ocupaVagaPorId(vagas, vaga_id, login)
@@ -206,12 +188,9 @@ def status(vaga: dict) -> str:
         - Só ocupa se vaga existir e estiver livre.
         - Busca para no primeiro elemento com ID correspondente.
     """
-
-
 def ocupaVagaPorId(vagas: list[dict], vaga_id: int, login: str) -> bool:
     alvo = next((v for v in vagas if v["id"] == vaga_id), None)
     return ocupar(alvo, login) if alvo else False
-
 
 """
     Nome: getId(vaga)
@@ -233,12 +212,9 @@ def ocupaVagaPorId(vagas: list[dict], vaga_id: int, login: str) -> bool:
     Restrições:
         - Função de acesso somente leitura (não modifica a vaga).
     """
-
-
 def getId(vaga: dict) -> int:
     """Retorna o ID da vaga de forma encapsulada."""
     return vaga["id"]
-
 
 """
     Nome: getEstado(vaga)
@@ -261,8 +237,6 @@ def getId(vaga: dict) -> int:
         - Função de acesso somente leitura (não modifica a vaga).
         - Estado "0" representa vaga livre; qualquer string = login ocupado.
     """
-
-
 def getEstado(vaga: dict):
     """Retorna o estado da vaga de forma encapsulada."""
     return vaga["estado"]

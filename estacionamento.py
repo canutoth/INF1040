@@ -1,6 +1,8 @@
 import csv
 import vagas as vaga_mod
 
+# ---------------------------------------------------------------------------
+# FUNCOES INTERNAS AO MODULO
 """
     Nome: novo_estacionamento(nome)
 
@@ -38,6 +40,38 @@ def novo_estacionamento(nome: str) -> dict:
     """
 def adicionar_vaga(est: dict, vaga: dict) -> None:
     est["vagas"].append(vaga)
+
+"""    
+    Nome: vagas_livres(est)
+
+    Objetivo:
+        Contar vagas livres no estacionamento.
+    """
+def vagas_livres(est: dict) -> int:
+    return sum(1 for v in est["vagas"] if vaga_mod.estaLivre(v))
+
+"""
+    Nome: verificar_status_vaga(est, id_vaga)
+
+    Objetivo:
+        Obter string de status da vaga de id_vaga.
+    """
+def verificar_status_vaga(est: dict, id_vaga: int) -> str:
+    v = next((x for x in est["vagas"] if vaga_mod.getId(x) == id_vaga), None)
+    return vaga_mod.status(v) if v else "ID de vaga inválido."
+
+"""
+    Nome: listar_status_vagas(est)
+
+    Objetivo:
+        Imprimir estado de cada vaga no console.
+    """
+def listar_status_vagas(est: dict) -> None:
+    print(f"\nStatus das vagas no {est['nome']}:")
+    for v in est["vagas"]:
+        print(vaga_mod.status(v))
+
+# ---------------------------------------------------------------------------
 
 """
     Nome: get_vaga_disponivel(est)
@@ -93,36 +127,6 @@ def ocupar_vaga_por_login(est: dict, login: str):
     if v and vaga_mod.ocupar(v, login):
         return True, vaga_mod.getId(v)
     return False, None
-
-"""
-    Nome: vagas_livres(est)
-
-    Objetivo:
-        Contar vagas livres no estacionamento.
-    """
-def vagas_livres(est: dict) -> int:
-    return sum(1 for v in est["vagas"] if vaga_mod.estaLivre(v))
-
-"""
-    Nome: listar_status_vagas(est)
-
-    Objetivo:
-        Imprimir estado de cada vaga no console.
-    """
-def listar_status_vagas(est: dict) -> None:
-    print(f"\nStatus das vagas no {est['nome']}:")
-    for v in est["vagas"]:
-        print(vaga_mod.status(v))
-
-"""
-    Nome: verificar_status_vaga(est, id_vaga)
-
-    Objetivo:
-        Obter string de status da vaga de id_vaga.
-    """
-def verificar_status_vaga(est: dict, id_vaga: int) -> str:
-    v = next((x for x in est["vagas"] if vaga_mod.getId(x) == id_vaga), None)
-    return vaga_mod.status(v) if v else "ID de vaga inválido."
 
 """
     Nome: salvar_estado_em_csv(est, writer)

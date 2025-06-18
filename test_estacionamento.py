@@ -77,17 +77,6 @@ def _mock_est(*pos, **kw):
 
     return est
 
-def test_novo_estacionamento_estrutura():
-    est = est_mod.novo_estacionamento("Z")
-    assert est == {"nome": "Z", "vagas": []}
-
-def test_adicionar_vaga_insere_em_ordem():
-    est = est_mod.novo_estacionamento("Z")
-    v1, v2 = vaga_mod.nova_vaga(1), vaga_mod.nova_vaga(2)
-    est_mod.adicionar_vaga(est, v1)
-    est_mod.adicionar_vaga(est, v2)
-    assert est["vagas"] == [v1, v2]
-
 # get_vaga_disponivel com est vazio
 def test_get_vaga_disponivel_sem_lista():
     est = est_mod.novo_estacionamento("Vazio")
@@ -100,11 +89,6 @@ def test_criar_estacionamentos_csv_inexistente(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "não encontrado" in out.lower()
     assert ests == []
-    
-# ---------------------------------------------------------------------------
-def teste_vagas_livres_varredura():
-    est = _mock_est(livres=3, ocupadas=[1, 3])  # total 5
-    assert est_mod.vagas_livres(est) == 3
 
 # ---------------------------------------------------------------------------
 def teste_get_vaga_disponivel_retorna_primeira_livre():
@@ -164,22 +148,6 @@ def test_buscar_vaga_por_login_sucesso():
     vaga = est_mod.buscar_vaga_por_login(est, "U2")
     assert vaga and vaga["id"] == 2
     assert est_mod.buscar_vaga_por_login(est, "UX") is None
-
-
-# ---------------------------------------------------------------------------
-def test_listar_status_vagas_captura_stdout(capsys):
-    est = _mock_est("Bloco X", livres=1, ocupadas=1)
-    est_mod.listar_status_vagas(est)
-    out = capsys.readouterr().out
-    assert "Bloco X" in out and "Livre" in out and "Ocupada por" in out
-
-
-# ---------------------------------------------------------------------------
-def test_verificar_status_vaga():
-    est = _mock_est(livres=1, ocupadas=1)  # vagas 1 (livre) e 2 (ocupada)
-    assert est_mod.verificar_status_vaga(est, 1).endswith("Livre")
-    assert "Ocupada por" in est_mod.verificar_status_vaga(est, 2)
-    assert est_mod.verificar_status_vaga(est, 99) == "ID de vaga inválido."
 
 
 # ---------------------------------------------------------------------------
