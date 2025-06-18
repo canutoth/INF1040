@@ -203,8 +203,6 @@ def tamanhoFila():
     Restrições:
         - Chamada típica no final da aplicação.
 """
-def esvaziarFila():
-    _FILA.clear()
 
 # ---------------------------------------------------------------------------
 def salvar_fila_em_csv(caminho: str = "fila.csv") -> None:

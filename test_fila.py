@@ -1,4 +1,6 @@
+import os
 import pytest
+import fila
 from fila import (
     consultarPosicaoNaFila,
     adicionarNaFila,
@@ -6,10 +8,16 @@ from fila import (
     ordenarFilaPorPrioridade,
     retornaPrimeiro,
     tamanhoFila,
+    carregar_fila_de_csv,
+    salvar_fila_em_csv,
 )
 
 # Fixture para limpar a fila antes de cada teste
 @pytest.fixture(autouse=True)
+def _reset_fila():
+    fila._FILA.clear()
+    yield
+    fila._FILA.clear()
 
 def teste_fila_inicialmente_vazia():
     assert tamanhoFila() == 0
@@ -164,3 +172,35 @@ def teste_inserir_usuario_ja_presente():
     ret1 = adicionarNaFila(usuario)
     ret2 = adicionarNaFila(usuario)
     assert ret2 == -1
+
+def test_salvar_fila_em_csv(tmp_path):
+    """(15) Verifica se salvar_fila_em_csv grava arquivo com ordem e conteúdo corretos."""
+    # prepara fila
+    adicionarNaFila({"login": "U1", "tipo": 1})
+    adicionarNaFila({"login": "U2", "tipo": 2})
+    csv_path = tmp_path / "subdir" / "fila.csv"
+    salvar_fila_em_csv(str(csv_path))
+    # lê de volta
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        linhas = [linha.strip() for linha in f.readlines()]
+    assert linhas == ["U1,1", "U2,2"]
+
+
+def test_carregar_fila_de_csv(tmp_path):
+    """(17) Lê CSV existente e popula _FILA na ordem correta."""
+    csv_path = tmp_path / "fila.csv"
+    csv_path.write_text("U1,1\nU2,2\n", encoding="utf-8")
+    carregar_fila_de_csv(str(csv_path))
+    assert tamanhoFila() == 2
+    assert consultarPosicaoNaFila("U1") == 1
+    assert consultarPosicaoNaFila("U2") == 2
+
+
+def test_carregar_fila_csv_inexistente(tmp_path):
+    """(19) Garantir que arquivo ausente não lança exceção e fila permanece vazia."""
+    inexistente = tmp_path / "nao_existe" / "fila.csv"
+    # certifica‑se de que não há arquivo
+    if inexistente.exists():
+        os.remove(inexistente)
+    carregar_fila_de_csv(str(inexistente))  # não deve levantar
+    assert tamanhoFila() == 0
