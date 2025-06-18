@@ -58,6 +58,8 @@ def IniciarSistema():
     usuario_mod.carregarUsuarios("users.csv")
     usuario_mod.carregarUsuarios("guests.csv", tipo_padrao=2)
 
+    fila_mod.carregar_fila_de_csv("fila.csv")
+
     # 2. Estacionamentos 
     ESTACIONAMENTOS = est_mod.criar_estacionamentos_de_csv("estacionamentos.csv")
 
@@ -232,7 +234,12 @@ def AlocarVaga():
     if USUARIO_ATUAL is None:
         TratarErros("NAO_AUTENTICADO")
         return
-
+    
+    for est in ESTACIONAMENTOS: 
+        if est_mod.buscar_vaga_por_login(est, usuario_mod.getLogin(USUARIO_ATUAL)) is not None:
+            print("Você já está alocado em uma vaga!")
+            return
+    
     est = est_mod.selecionar_estacionamento(ESTACIONAMENTOS)
     if not est:
         print("Nenhum estacionamento selecionado.")
@@ -244,6 +251,7 @@ def AlocarVaga():
         TratarErros("SEM_VAGAS")
     else:
         est_mod.ocupar_vaga_por_login(est, usuario_mod.getLogin(USUARIO_ATUAL))
+        fila_mod.removerDaFila(usuario_mod.getLogin(USUARIO_ATUAL))
         print(f"✅ Vaga {vaga['id']} ocupada. Boa estadia!")
 
 """
@@ -333,10 +341,12 @@ def GerenciaFila(usuario):
 def AtualizarEstado(est):
     vaga = est_mod.get_vaga_disponivel(est)
     if vaga is None:
+        print("Vaga não existe")
         return
 
     prox = fila_mod.retornaPrimeiro()
-    if prox:
+    if prox is not None:
+        print(f"Peguei um prox, {usuario_mod.getLogin(prox)}")
         ok, id_vaga = est_mod.ocupar_vaga_por_login(est, usuario_mod.getLogin(prox))
         if ok:
             fila_mod.removerDaFila(usuario_mod.getLogin(prox))
@@ -381,7 +391,6 @@ def ExibirResumo():
     Acoplamento:
         - usuario_mod.salvarUsuarios().
         - Estacionamento.salvarEstadoEmCSV() em loop de ESTACIONAMENTOS.
-        - fila_mod.esvaziarFila().
         - sys.exit(0).
 
     Descrição:
@@ -400,9 +409,8 @@ def EncerrarSistema():
         for est in ESTACIONAMENTOS:
             est_mod.salvar_estado_em_csv(est, writer)
     
-    # Esvaziar a fila antes de encerrar
-    fila_mod.esvaziarFila()
-    
+    fila_mod.salvar_fila_em_csv("fila.csv")
+
     print("✔️  Dados salvos. Até logo!")
     sys.exit(0)
 

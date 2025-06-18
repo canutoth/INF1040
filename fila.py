@@ -1,3 +1,5 @@
+import pathlib
+import csv
 import usuario
 
 # ---------------------------- variável global da fila ------------------------
@@ -203,3 +205,47 @@ def tamanhoFila():
 """
 def esvaziarFila():
     _FILA.clear()
+
+# ---------------------------------------------------------------------------
+def salvar_fila_em_csv(caminho: str = "fila.csv") -> None:
+    """
+    Grava o conteúdo atual de `_FILA` em CSV.
+
+    Formato de cada linha:
+        login_usuario , tipo_usuario
+
+    • A posição das linhas preserva a ordem da fila
+      (quem está no topo é escrito primeiro).
+    • Cria/overwrite o arquivo informado.
+    """
+    # garante que o diretório exista (evita FileNotFoundError em sub-pastas)
+    pathlib.Path(caminho).parent.mkdir(parents=True, exist_ok=True)
+
+    with open(caminho, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        for u in _FILA:
+            w.writerow([usuario.getLogin(u), usuario.getTipo(u)])
+
+
+def carregar_fila_de_csv(caminho: str = "fila.csv") -> None:
+    """
+    Lê o arquivo CSV (caso exista) e repopula `_FILA`.
+
+    • Linhas vazias ou mal-formadas são ignoradas.
+    • Se o arquivo não existir, apenas mantém fila vazia.
+    """
+    _FILA.clear()                              # zera estado anterior
+    try:
+        with open(caminho, newline="", encoding="utf-8") as f:
+            for row in csv.reader(f):
+                if len(row) < 2:
+                    continue                   # ignora linha ruim
+                login, tipo_s = row[0].strip(), row[1].strip()
+                try:
+                    tipo = int(tipo_s)
+                except ValueError:
+                    continue                   # linha mal-formada
+                _FILA.append(usuario.novo_usuario(login, "", tipo))
+    except FileNotFoundError:
+        # ok – primeira execução, fila ainda não foi criada
+        pass
