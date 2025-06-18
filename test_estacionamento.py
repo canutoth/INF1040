@@ -77,6 +77,30 @@ def _mock_est(*pos, **kw):
 
     return est
 
+def test_novo_estacionamento_estrutura():
+    est = est_mod.novo_estacionamento("Z")
+    assert est == {"nome": "Z", "vagas": []}
+
+def test_adicionar_vaga_insere_em_ordem():
+    est = est_mod.novo_estacionamento("Z")
+    v1, v2 = vaga_mod.nova_vaga(1), vaga_mod.nova_vaga(2)
+    est_mod.adicionar_vaga(est, v1)
+    est_mod.adicionar_vaga(est, v2)
+    assert est["vagas"] == [v1, v2]
+
+# get_vaga_disponivel com est vazio
+def test_get_vaga_disponivel_sem_lista():
+    est = est_mod.novo_estacionamento("Vazio")
+    assert est_mod.get_vaga_disponivel(est) is None
+
+# criar_estacionamentos_de_csv caminho inexistente
+def test_criar_estacionamentos_csv_inexistente(tmp_path, capsys):
+    caminho = tmp_path / "nao_existe.csv"
+    ests = est_mod.criar_estacionamentos_de_csv(str(caminho))
+    out = capsys.readouterr().out
+    assert "não encontrado" in out.lower()
+    assert ests == []
+    
 # ---------------------------------------------------------------------------
 def teste_vagas_livres_varredura():
     est = _mock_est(livres=3, ocupadas=[1, 3])  # total 5

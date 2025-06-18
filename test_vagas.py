@@ -47,3 +47,17 @@ def teste_ocupaVagaPorId_falha_id_inexistente():
     vs = [vaga_mod.nova_vaga(i) for i in range(1, 3)]
     ok = vaga_mod.ocupaVagaPorId(vs, 99, "U7")
     assert not ok
+
+# ---------------------------------------------------------------------------
+def test_ocupaVagaPorId_falha_ja_ocupada():
+    vs = [vaga_mod.nova_vaga(1)]
+    assert vaga_mod.ocupar(vs[0], "U1")          # ocupa primeiro
+    ok = vaga_mod.ocupaVagaPorId(vs, 1, "U2")    # tenta de novo
+    assert not ok                                # deve falhar
+    assert vs[0]["estado"] == "U1"               # login original intacto
+
+# ---------------------------------------------------------------------------
+def test_liberar_vaga_ja_livre():
+    v = vaga_mod.nova_vaga(5)                    # já livre
+    vaga_mod.liberar(v)                          # chamada idempotente
+    assert vaga_mod.estaLivre(v) and v["estado"] == 0
