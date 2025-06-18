@@ -344,7 +344,7 @@ def AtualizarEstado(est):
     if prox:
         ok, id_vaga = est_mod.ocupar_vaga_por_login(est, usuario_mod.getLogin(prox))
         if ok:
-            fila_mod.removerDaFila(FILA, usuario_mod.getLogin(prox))
+            fila_mod.removerDaFila(usuario_mod.getLogin(prox))
             print(f"🔔 Usuário {usuario_mod.getLogin(prox)} foi chamado para ocupar a vaga {id_vaga}.")
 
 """
