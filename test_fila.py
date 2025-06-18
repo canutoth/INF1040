@@ -175,3 +175,16 @@ def teste_tamanho_fila():
     
     removerDaFila("U1")
     assert tamanhoFila() == 1
+
+def teste_inserir_usuario_ja_presente():
+    usuario = {"login": "U1", "tipo": 1}
+    ret1 = adicionarNaFila(usuario)
+    ret2 = adicionarNaFila(usuario)
+    assert ret2 == -1
+
+
+def teste_esvaziar_fila_em_estado_vazio():
+    # Fila já está vazia graças à fixture
+    ret = esvaziarFila()
+    assert ret is None
+    assert tamanhoFila() == 0
