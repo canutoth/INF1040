@@ -51,6 +51,14 @@ def consultarPosicaoNaFila(id_usuario):
     Descrição:
         1) Se login já presente → –1.
         2) append(usuario_obj) → ordenarFilaPorPrioridade() → 0.
+
+    Hipóteses:
+        - Logins são únicos por usuário.
+        - usuario_obj é dict válido com campos obrigatórios.
+
+    Restrições:
+        - Busca O(n) para verificar duplicidade.
+        - Ordenação O(n log n) após inserção.
 """
 def adicionarNaFila(usuario_obj):
     if consultarPosicaoNaFila(usuario.getLogin(usuario_obj)) != -1:
@@ -73,9 +81,16 @@ def adicionarNaFila(usuario_obj):
 
     Condições de Acoplamento:
         AE: id_usuario não vazio.
+        AS: primeiro usuário com login correspondente é removido.
 
     Descrição:
         Percorre lista; del quando getLogin(u) coincide.
+
+    Hipóteses:
+        - Logins são únicos na fila.
+
+    Restrições:
+        - Busca e remoção O(n).
 """
 def removerDaFila(id_usuario):
     for i, u in enumerate(_FILA):
@@ -100,6 +115,14 @@ def removerDaFila(id_usuario):
 
     Descrição:
         list.sort(key=lambda u: getTipo(u)) — sort do Python é estável.
+
+    Hipóteses:
+        - Todos os usuários têm campo 'tipo' válido.
+        - Tipos são valores numéricos ordenáveis.
+
+    Restrições:
+        - Ordenação O(n log n).
+        - Modifica _FILA in-place.
 """
 def ordenarFilaPorPrioridade():
     if len(_FILA) > 1:
@@ -119,8 +142,15 @@ def ordenarFilaPorPrioridade():
         AE: _FILA lista válida.
         AS: devolve primeiro elemento ou None se vazia.
 
-    Retorno:
-        dict | None.
+    Descrição:
+        Acessa _FILA[0] se não vazia, senão retorna None.
+
+    Hipóteses:
+        - Fila mantém ordenação por prioridade.
+
+    Restrições:
+        - Acesso O(1).
+        - Não modifica a fila.
 """
 def retornaPrimeiro():
     return _FILA[0] if _FILA else None
@@ -141,6 +171,13 @@ def retornaPrimeiro():
 
     Descrição:
         Retorna len(_FILA).
+
+    Hipóteses:
+        - _FILA é lista Python válida.
+
+    Restrições:
+        - Acesso O(1).
+        - Não modifica a fila.
 """
 def tamanhoFila():
     return len(_FILA)
