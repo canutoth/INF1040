@@ -4,7 +4,7 @@ import vagas as vaga_mod
 # ---------------------------------------------------------------------------
 # FUNCOES INTERNAS AO MODULO
 """
-    Nome: novo_estacionamento(nome)
+    Nome: _novo_estacionamento(nome)
 
     Objetivo:
         Instanciar um registro-estacionamento vazio.
@@ -22,7 +22,7 @@ import vagas as vaga_mod
     Restrições:
         - Não cria vagas automaticamente.
     """
-def novo_estacionamento(nome: str) -> dict:
+def _novo_estacionamento(nome: str) -> dict:
     return {"nome": nome, "vagas": []}
 
 """
@@ -38,41 +38,52 @@ def novo_estacionamento(nome: str) -> dict:
     Restrições:
         - Não verifica duplicidade de ID.
     """
-def adicionar_vaga(est: dict, vaga: dict) -> None:
+def _adicionar_vaga(est: dict, vaga: dict) -> None:
     est["vagas"].append(vaga)
 
 """    
-    Nome: vagas_livres(est)
+    Nome: _vagas_livres(est)
 
     Objetivo:
         Contar vagas livres no estacionamento.
     """
-def vagas_livres(est: dict) -> int:
+def _vagas_livres(est: dict) -> int:
     return sum(1 for v in est["vagas"] if vaga_mod.estaLivre(v))
 
 """
-    Nome: verificar_status_vaga(est, id_vaga)
+    Nome: _verificar_status_vaga(est, id_vaga)
 
     Objetivo:
         Obter string de status da vaga de id_vaga.
     """
-def verificar_status_vaga(est: dict, id_vaga: int) -> str:
+def _verificar_status_vaga(est: dict, id_vaga: int) -> str:
     v = next((x for x in est["vagas"] if vaga_mod.getId(x) == id_vaga), None)
     return vaga_mod.status(v) if v else "ID de vaga inválido."
 
 """
-    Nome: listar_status_vagas(est)
+    Nome: _listar_status_vagas(est)
 
     Objetivo:
         Imprimir estado de cada vaga no console.
     """
-def listar_status_vagas(est: dict) -> None:
+def _listar_status_vagas(est: dict) -> None:
     print(f"\nStatus das vagas no {est['nome']}:")
     for v in est["vagas"]:
         print(vaga_mod.status(v))
 
 # ---------------------------------------------------------------------------
+# APIs Publicas
+def novo_estacionamento(nome: str):
+    return _novo_estacionamento(nome)
 
+def adicionar_vaga(est, vaga):
+    _adicionar_vaga(est, vaga)
+
+def vagas_livres(est):
+    return _vagas_livres(est)
+
+def listar_status_vagas(est):
+    return _listar_status_vagas(est)
 """
     Nome: get_vaga_disponivel(est)
 
@@ -157,12 +168,12 @@ def criar_estacionamentos_de_csv(caminho_csv: str) -> list[dict]:
             for row in csv.reader(f):
                 if not row:
                     continue
-                est = novo_estacionamento(row[0])
+                est = _novo_estacionamento(row[0])
                 for i, estado in enumerate(row[1:], 1):
                     v = vaga_mod.nova_vaga(i)
                     if estado.strip() != "0":
                         vaga_mod.ocupar(v, estado.strip())
-                    adicionar_vaga(est, v)
+                    _adicionar_vaga(est, v)
                 ests.append(est)
     except FileNotFoundError:
         print(f"Arquivo {caminho_csv} não encontrado.")
@@ -177,7 +188,7 @@ def criar_estacionamentos_de_csv(caminho_csv: str) -> list[dict]:
 def listar_estacionamentos(ests: list[dict]) -> None:
     print("\nEstacionamentos disponíveis:")
     for idx, e in enumerate(ests, 1):
-        print(f"{idx}. {e['nome']} – Vagas livres: {vagas_livres(e)}")
+        print(f"{idx}. {e['nome']} – Vagas livres: {_vagas_livres(e)}")
 
 """
     Nome: selecionar_estacionamento(ests)
@@ -215,3 +226,15 @@ def selecionar_estacionamento(ests: list[dict]):
 def getNome(estacionamento: dict) -> str:
     """Retorna o nome do estacionamento de forma encapsulada."""
     return estacionamento["nome"]
+
+__all__ = [
+    "get_vaga_disponivel",
+    "buscar_vaga_por_login",
+    "liberar_vaga_de",
+    "ocupar_vaga_por_login",
+    "salvar_estado_em_csv",
+    "criar_estacionamentos_de_csv",
+    "listar_estacionamentos",
+    "selecionar_estacionamento",
+    "getNome",
+]

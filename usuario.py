@@ -3,6 +3,8 @@ import csv
 usuarios = []
 convidados = []
 
+# ---------------------------------------------------------------------------
+# FUNCOES INTERNAS
 """
     Nome: novo_usuario(login, senha, tipo)
 
@@ -12,8 +14,7 @@ convidados = []
     Retorno:
         dict {"login": str, "senha": str, "tipo": int}
 """
-
-def novo_usuario(login: str, senha: str, tipo: int) -> dict:
+def _novo_usuario(login: str, senha: str, tipo: int) -> dict:
     """Cria e devolve o dicionário-usuário."""
     return {"login": login, "senha": senha, "tipo": tipo}
 
@@ -40,8 +41,7 @@ def novo_usuario(login: str, senha: str, tipo: int) -> dict:
     Restrições:
        - Nenhuma.
 """
-
-def validaLogin(login: str) -> bool:
+def _validaLogin(login: str) -> bool:
     """Retorna True se matrícula tem 7 dígitos numéricos."""
     return len(login) == 7 and login.isdigit()
 
@@ -68,7 +68,7 @@ def validaLogin(login: str) -> bool:
     Restrições:
        - Custo O(n) onde n = len(usuarios).
     """
-def loginExiste(login: str) -> bool:
+def _loginExiste(login: str) -> bool:
     """Verifica duplicidade em `usuarios`."""
     return any(u["login"] == login for u in usuarios)
 
@@ -95,7 +95,7 @@ def loginExiste(login: str) -> bool:
     Restrições:
        - Tempo O(m) onde m = len(convidados).
     """
-def cpfConvidadoValido(cpf: str) -> bool:
+def _cpfConvidadoValido(cpf: str) -> bool:
     """Checa se CPF está na lista diária de convidados."""
     return any(c["login"] == cpf for c in convidados)
 
@@ -122,9 +122,25 @@ def cpfConvidadoValido(cpf: str) -> bool:
     Restrições:
        - Busca linear.
     """
-def buscarUsuario(login: str):
+def _buscarUsuario(login: str):
     """Retorna dicionário-usuário ou None."""
     return next((u for u in usuarios if u["login"] == login), None)
+# ---------------------------------------------------------------------------
+# APIs Publicas
+def novo_usuario(login: str, senha: str, tipo: int) -> dict:
+    return _novo_usuario(login, senha, tipo)
+
+def validaLogin(login: str) -> bool:
+    return _validaLogin(login)
+
+def loginExiste(login: str) -> bool:
+    return _loginExiste(login)
+
+def cpfConvidadoValido(cpf: str) -> bool:
+    return _cpfConvidadoValido(cpf)
+
+def buscarUsuario(login: str):
+    return _buscarUsuario(login)
 
 """
     Nome: criaInterno()
@@ -414,3 +430,23 @@ def getTipo(usuario: dict) -> int:
     if usuario is None:
         return -1
     return usuario["tipo"]
+
+__all__ = [
+    # helpers/funções de domínio
+    "novo_usuario",
+    "validaLogin",
+    "loginExiste",
+    "cpfConvidadoValido",
+    "buscarUsuario",
+
+    # operações de alto nível
+    "criaInterno",
+    "criaConvidado",
+    "carregarUsuarios",
+    "salvarUsuarios",
+    "autentica",
+
+    # getters seguros
+    "getLogin",
+    "getTipo",
+]
