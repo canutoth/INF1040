@@ -248,6 +248,55 @@ def test_autenticar_usuario_login_inexistente(monkeypatch, capsys):
     assert "Login inexistente" in out
     assert principal.USUARIO_ATUAL is None
 
+# ---------------------------------------------------------------------------
+# AtualizarEstado
+# ---------------------------------------------------------------------------
+
+def test_atualizar_estado_chama_proximo(monkeypatch, capsys):
+    fake_est = object()
+    prox_user = {"login": "john"}
+
+    monkeypatch.setattr(principal.est_mod, "get_vaga_disponivel", lambda est: {"id": 11})
+    monkeypatch.setattr(principal.fila_mod, "retornaPrimeiro", lambda: prox_user)
+    monkeypatch.setattr(principal.usuario_mod, "getLogin", lambda u: u["login"])
+    monkeypatch.setattr(principal.est_mod, "ocupar_vaga_por_login", lambda est, login: (True, 11))
+
+    removed = {}
+    monkeypatch.setattr(principal.fila_mod, "removerDaFila", lambda login: removed.setdefault("done", login == "john"))
+
+    principal.AtualizarEstado(fake_est)
+
+    assert removed.get("done") is True
+
+
+# ---------------------------------------------------------------------------
+# GerenciaFila
+# ---------------------------------------------------------------------------
+def test_gerencia_fila_adiciona(monkeypatch):
+    user = {"login": "john"}
+    monkeypatch.setattr(principal.usuario_mod, "getLogin", lambda u: u["login"])
+    monkeypatch.setattr(principal.fila_mod, "consultarPosicaoNaFila", lambda login: -1)
+
+    chamado = {}
+
+    def fake_add(u):
+        chamado["add"] = u
+
+    monkeypatch.setattr(principal.fila_mod, "adicionarNaFila", fake_add)
+
+    principal.GerenciaFila(user)
+    assert chamado["add"] is user
+
+
+def test_gerencia_fila_nao_duplica(monkeypatch):
+    user = {"login": "john"}
+    monkeypatch.setattr(principal.usuario_mod, "getLogin", lambda u: u["login"])
+    monkeypatch.setattr(principal.fila_mod, "consultarPosicaoNaFila", lambda login: 0)
+
+    chamado = {}
+    monkeypatch.setattr(
+        principal.fila_mod, "adicionarNaFila", lambda u: chamado.setdefault("chamado", True)
+    )
 
 
 
