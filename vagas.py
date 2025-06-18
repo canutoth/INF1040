@@ -116,3 +116,39 @@ def status(vaga: dict) -> str:
 def ocupaVagaPorId(vagas: list[dict], vaga_id: int, login: str) -> bool:
     alvo = next((v for v in vagas if v["id"] == vaga_id), None)
     return ocupar(alvo, login) if alvo else False
+
+"""
+    Nome: getId(vaga)
+
+    Objetivo:
+        Obter o ID de uma vaga sem expor a estrutura interna.
+
+    Acoplamento:
+        
+vaga: dict — registro vaga.
+retorno: int — ID da vaga.
+
+    Descrição:
+        Função de acesso que encapsula o campo "id" da vaga.
+"""
+def getId(vaga: dict) -> int:
+    """Retorna o ID da vaga de forma encapsulada."""
+    return vaga["id"]
+
+"""
+    Nome: getEstado(vaga)
+
+    Objetivo:
+        Obter o estado de uma vaga sem expor a estrutura interna.
+
+    Acoplamento:
+        
+vaga: dict — registro vaga.
+retorno: int | str — estado da vaga (0 se livre, login se ocupada).
+
+    Descrição:
+        Função de acesso que encapsula o campo "estado" da vaga.
+"""
+def getEstado(vaga: dict):
+    """Retorna o estado da vaga de forma encapsulada."""
+    return vaga["estado"]

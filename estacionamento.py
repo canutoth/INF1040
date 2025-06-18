@@ -76,7 +76,7 @@ def liberar_vaga_de(est: dict, usuario: dict):
     v = buscar_vaga_por_login(est, usuario["login"])
     if v:
         vaga_mod.liberar(v)
-        return v["id"]
+        return vaga_mod.getId(v)
     return None
 
 """
@@ -91,7 +91,7 @@ def liberar_vaga_de(est: dict, usuario: dict):
 def ocupar_vaga_por_login(est: dict, login: str):
     v = get_vaga_disponivel(est)
     if v and vaga_mod.ocupar(v, login):
-        return True, v["id"]
+        return True, vaga_mod.getId(v)
     return False, None
 
 """
@@ -121,7 +121,7 @@ def listar_status_vagas(est: dict) -> None:
         Obter string de status da vaga de id_vaga.
     """
 def verificar_status_vaga(est: dict, id_vaga: int) -> str:
-    v = next((x for x in est["vagas"] if x["id"] == id_vaga), None)
+    v = next((x for x in est["vagas"] if vaga_mod.getId(x) == id_vaga), None)
     return vaga_mod.status(v) if v else "ID de vaga inválido."
 
 """
@@ -132,7 +132,7 @@ def verificar_status_vaga(est: dict, id_vaga: int) -> str:
     """
 def salvar_estado_em_csv(est: dict, writer) -> None:
     linha = [est["nome"]] + [
-        (v["estado"] if not vaga_mod.estaLivre(v) else "0") for v in est["vagas"]
+        (vaga_mod.getEstado(v) if not vaga_mod.estaLivre(v) else "0") for v in est["vagas"]
     ]
     writer.writerow(linha)
 
