@@ -68,3 +68,59 @@ def test_estaOcupadaPor_login_errado():
     v = vaga_mod.nova_vaga(6)
     assert vaga_mod.ocupar(v, "U1")
     assert not vaga_mod.estaOcupadaPor(v, "U2")
+
+# ---------------------------------------------------------------------------
+def test_getId_vaga_livre():
+    """Testa getId com vaga recém-criada."""
+    v = vaga_mod.nova_vaga(10)
+    assert vaga_mod.getId(v) == 10
+
+# ---------------------------------------------------------------------------
+def test_getId_vaga_ocupada():
+    """Testa getId com vaga ocupada - ID não deve mudar."""
+    v = vaga_mod.nova_vaga(25)
+    vaga_mod.ocupar(v, "U5")
+    assert vaga_mod.getId(v) == 25
+
+# ---------------------------------------------------------------------------
+def test_getEstado_vaga_livre():
+    """Testa getEstado com vaga livre."""
+    v = vaga_mod.nova_vaga(7)
+    assert vaga_mod.getEstado(v) == 0
+
+# ---------------------------------------------------------------------------
+def test_getEstado_vaga_ocupada():
+    """Testa getEstado com vaga ocupada."""
+    v = vaga_mod.nova_vaga(8)
+    vaga_mod.ocupar(v, "U3")
+    assert vaga_mod.getEstado(v) == "U3"
+
+# ---------------------------------------------------------------------------
+def test_getEstado_apos_liberar():
+    """Testa getEstado após ocupar e liberar vaga."""
+    v = vaga_mod.nova_vaga(9)
+    
+    # Estado inicial: livre
+    assert vaga_mod.getEstado(v) == 0
+    
+    # Após ocupar
+    vaga_mod.ocupar(v, "U4")
+    assert vaga_mod.getEstado(v) == "U4"
+    
+    # Após liberar
+    vaga_mod.liberar(v)
+    assert vaga_mod.getEstado(v) == 0
+
+# ---------------------------------------------------------------------------
+def test_getEstado_multiplas_ocupacoes():
+    """Testa getEstado com diferentes logins."""
+    v = vaga_mod.nova_vaga(11)
+    
+    # Ocupa com primeiro usuário
+    vaga_mod.ocupar(v, "admin")
+    assert vaga_mod.getEstado(v) == "admin"
+    
+    # Libera e ocupa com segundo usuário
+    vaga_mod.liberar(v)
+    vaga_mod.ocupar(v, "user123")
+    assert vaga_mod.getEstado(v) == "user123"
